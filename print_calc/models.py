@@ -1,3 +1,10 @@
+"""
+Database models for the 3D Print Profit Calculator.
+
+Contains machine specifications and saved custom print calculations.
+"""
+
+from decimal import Decimal, ROUND_HALF_UP
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -6,7 +13,7 @@ class PrinterMachine(models.Model):
     """Stores 3D printer models and average power consumption in watts."""
 
     name = models.CharField(max_length=100, unique=True)
-    brand = models.CharField(max_length=50)
+    brand = models.CharField(max_length=50, blank=True, default="")
     average_watts_pla = models.PositiveIntegerField(
         help_text="Average watts used printing PLA/PETG"
     )
@@ -15,7 +22,9 @@ class PrinterMachine(models.Model):
     )
 
     def __str__(self):
-        return f"{self.brand} {self.name}"
+        if self.brand:
+            return f"{self.brand} {self.name}"
+        return self.name
 
 
 class SavedPrint(models.Model):
@@ -55,7 +64,7 @@ class SavedPrint(models.Model):
     electricity_rate_kwh = models.DecimalField(
         max_digits=4,
         decimal_places=2,
-        default=0.25,
+        default=Decimal("0.25"),
         help_text="Cost per kWh in £",
     )
     markup_percentage = models.PositiveIntegerField(
@@ -74,10 +83,12 @@ class SavedPrint(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        """Calculates costs and retail prices using custom logic."""
+        """Calculates costs and retail prices using Decimal precision."""
+        two_places = Decimal("0.01")
+
         filament_cost = (
-            float(self.spool_price_per_kg) / 1000
-        ) * self.filament_grams_used
+            self.spool_price_per_kg / Decimal("1000")
+        ) * Decimal(self.filament_grams_used)
 
         watts = (
             self.printer.average_watts_abs
@@ -85,26 +96,32 @@ class SavedPrint(models.Model):
             else self.printer.average_watts_pla
         )
         electricity_cost = (
-            (float(watts) / 1000)
-            * float(self.print_time_hours)
-            * float(self.electricity_rate_kwh)
+            (Decimal(watts) / Decimal("1000"))
+            * self.print_time_hours
+            * self.electricity_rate_kwh
         )
 
         failure_multiplier = (
-            1.15 if self.filament_type in ["ABS", "TPU"] else 1.05
-        )
-        self.total_cost = round(
-            (filament_cost + electricity_cost) * failure_multiplier, 2
+            Decimal("1.15")
+            if self.filament_type in ["ABS", "TPU"]
+            else Decimal("1.05")
         )
 
-        self.recommended_retail_price = round(
-            float(self.total_cost)
-            * (1 + (float(self.markup_percentage) / 100)),
-            2,
+        calculated_cost = (
+            (filament_cost + electricity_cost) * failure_multiplier
+        ).quantize(two_places, rounding=ROUND_HALF_UP)
+
+        markup_multiplier = Decimal("1") + (
+            Decimal(self.markup_percentage) / Decimal("100")
         )
-        self.profit_per_item = round(
-            float(self.recommended_retail_price) - float(self.total_cost), 2
-        )
+
+        calculated_retail = (
+            calculated_cost * markup_multiplier
+        ).quantize(two_places, rounding=ROUND_HALF_UP)
+
+        self.total_cost = calculated_cost
+        self.recommended_retail_price = calculated_retail
+        self.profit_per_item = calculated_retail - calculated_cost
 
         super().save(*args, **kwargs)
 
