@@ -154,3 +154,25 @@ def signup_view(request):
         form = UserCreationForm()
 
     return render(request, "print_calc/signup.html", {"form": form})
+
+
+@login_required
+def delete_print_view(request, pk):
+    """
+    Deletes a specific saved print.
+
+    Ensures the user owns the record and accepts POST requests only.
+    """
+    saved_print = get_object_or_404(SavedPrint, pk=pk, user=request.user)
+
+    if request.method == "POST":
+        item_name = saved_print.item_name
+        saved_print.delete()
+        messages.success(
+            request,
+            f"Successfully deleted '{item_name}' from your catalogue.",
+        )
+        return redirect("catalogue")
+
+    # If accessed via GET, redirect back safely to the catalogue
+    return redirect("catalogue")

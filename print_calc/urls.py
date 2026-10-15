@@ -14,6 +14,7 @@ urlpatterns = [
     path("", views.calculator_view, name="calculator"),
     path("catalogue/", views.catalogue_view, name="catalogue"),
     path("edit/<int:pk>/", views.edit_print_view, name="edit_print"),
+    path("delete/<int:pk>/", views.delete_print_view, name="delete_print"),
     # Standard Built-in Authentication
     path(
         "login/",
