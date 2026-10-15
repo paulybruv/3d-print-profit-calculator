@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 780" width="100%" height="100%" style="background:#f4f4f4; font-family:'Courier New', Courier, monospace;">
+  <!-- Mobile Device Outline -->
+  <rect x="10" y="10" width="360" height="760" fill="#ffffff" stroke="#222222" stroke-width="2"/>
+
+  <!-- Device Top Speaker Slot -->
+  <line x1="140" y1="24" x2="240" y2="24" stroke="#777777" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Mobile Nav Wireframe -->
+  <rect x="10" y="40" width="360" height="46" fill="#ffffff" stroke="#333333" stroke-width="1"/>
+  <text x="25" y="68" font-size="12" font-weight="bold" fill="#000000">[BRAND / LOGO]</text>
+  <!-- Hamburger wireframe lines -->
+  <line x1="330" y1="56" x2="352" y2="56" stroke="#222222" stroke-width="2"/>
+  <line x1="330" y1="62" x2="352" y2="62" stroke="#222222" stroke-width="2"/>
+  <line x1="330" y1="68" x2="352" y2="68" stroke="#222222" stroke-width="2"/>
+
+  <!-- Page Header Title -->
+  <text x="25" y="112" font-size="15" font-weight="bold" fill="#111111">&lt;H1: CATALOGUE&gt;</text>
+  <rect x="240" y="96" width="115" height="28" fill="#e8e8e8" stroke="#333333" stroke-width="1"/>
+  <text x="255" y="114" font-size="10" font-weight="bold" fill="#000000">[+ NEW CALC]</text>
+
+  <!-- Metric Summary Boxes -->
+  <rect x="25" y="140" width="155" height="50" fill="none" stroke="#555555" stroke-width="1.5"/>
+  <text x="35" y="158" font-size="9" fill="#666666">METRIC: TOTAL ITEMS</text>
+  <text x="35" y="180" font-size="16" font-weight="bold" fill="#111111">[12]</text>
+
+  <rect x="195" y="140" width="160" height="50" fill="none" stroke="#555555" stroke-width="1.5"/>
+  <text x="205" y="158" font-size="9" fill="#666666">METRIC: AVG PROFIT</text>
+  <text x="205" y="180" font-size="16" font-weight="bold" fill="#111111">[£3.45]</text>
+
+  <!-- Item Card Wireframe -->
+  <rect x="25" y="210" width="330" height="240" fill="#ffffff" stroke="#333333" stroke-width="2"/>
+  <rect x="25" y="210" width="330" height="30" fill="#f0f0f0" stroke="#333333" stroke-width="1"/>
+  <text x="35" y="230" font-size="11" font-weight="bold" fill="#000000">[CARD: ITEM TITLE]</text>
+  <rect x="290" y="216" width="55" height="18" fill="none" stroke="#666666" stroke-width="1"/>
+  <text x="298" y="229" font-size="8" fill="#444444">[PLA]</text>
+
+  <!-- Spec lines -->
+  <text x="35" y="262" font-size="10" fill="#555555">Printer Model:</text>
+  <text x="340" y="262" font-size="10" font-weight="bold" fill="#111111" text-anchor="end">[Machine Name]</text>
+  <line x1="35" y1="270" x2="345" y2="270" stroke="#eeeeee" stroke-width="1"/>
+
+  <text x="35" y="287" font-size="10" fill="#555555">Filament / Time:</text>
+  <text x="340" y="287" font-size="10" font-weight="bold" fill="#111111" text-anchor="end">[100g / 2.0 hrs]</text>
+  <line x1="35" y1="295" x2="345" y2="295" stroke="#eeeeee" stroke-width="1"/>
+
+  <text x="35" y="312" font-size="10" fill="#555555">Production Cost:</text>
+  <text x="340" y="312" font-size="10" font-weight="bold" fill="#111111" text-anchor="end">[£2.16]</text>
+  <line x1="35" y1="320" x2="345" y2="320" stroke="#eeeeee" stroke-width="1"/>
+
+  <text x="35" y="337" font-size="10" fill="#555555">Retail Price:</text>
+  <text x="340" y="337" font-size="11" font-weight="bold" fill="#111111" text-anchor="end">[£3.24]</text>
+  <line x1="35" y1="345" x2="345" y2="345" stroke="#eeeeee" stroke-width="1"/>
+
+  <text x="35" y="362" font-size="10" fill="#555555">Profit Margin:</text>
+  <text x="340" y="362" font-size="10" font-weight="bold" fill="#111111" text-anchor="end">[£1.08 (50%)]</text>
+
+  <!-- Action Buttons Wireframe -->
+  <rect x="35" y="390" width="145" height="34" fill="#ffffff" stroke="#333333" stroke-width="1"/>
+  <text x="90" y="411" font-size="11" fill="#111111">[EDIT]</text>
+  <rect x="195" y="390" width="150" height="34" fill="#ffffff" stroke="#333333" stroke-width="1"/>
+  <text x="245" y="411" font-size="11" fill="#111111">[DELETE]</text>
+
+  <!-- Wireframe Confirmation Modal Overlay -->
+  <rect x="25" y="480" width="330" height="240" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="25" y="480" width="330" height="30" fill="#e0e0e0" stroke="#111111" stroke-width="1"/>
+  <text x="35" y="500" font-size="11" font-weight="bold" fill="#111111">[MODAL: CONFIRM DELETION]</text>
+  <text x="335" y="500" font-size="12" font-weight="bold" fill="#111111">[X]</text>
+
+  <!-- Crossed Box Placeholder for Modal Alert -->
+  <rect x="40" y="530" width="300" height="60" fill="none" stroke="#777777" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="40" y1="530" x2="340" y2="590" stroke="#dddddd" stroke-width="1"/>
+  <line x1="40" y1="590" x2="340" y2="530" stroke="#dddddd" stroke-width="1"/>
+  <text x="65" y="565" font-size="10" fill="#444444">"Are you sure you want to delete this item?"</text>
+
+  <!-- Modal Buttons -->
+  <rect x="40" y="650" width="135" height="36" fill="#ffffff" stroke="#333333" stroke-width="1"/>
+  <text x="80" y="672" font-size="11" fill="#111111">[CANCEL]</text>
+  <rect x="195" y="650" width="145" height="36" fill="#d0d0d0" stroke="#333333" stroke-width="1.5"/>
+  <text x="220" y="672" font-size="11" font-weight="bold" fill="#000000">[YES, DELETE]</text>
+</svg>

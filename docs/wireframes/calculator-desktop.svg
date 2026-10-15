@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680" width="100%" height="100%" style="background:#f4f4f4; font-family:'Courier New', Courier, monospace;">
+  <!-- Canvas Outline / Window -->
+  <rect x="15" y="15" width="970" height="650" fill="#ffffff" stroke="#333333" stroke-width="2"/>
+  
+  <!-- Browser Bar Mockup -->
+  <line x1="15" y1="50" x2="985" y2="50" stroke="#333333" stroke-width="1.5"/>
+  <circle cx="35" cy="32" r="5" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <circle cx="50" cy="32" r="5" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <circle cx="65" cy="32" r="5" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <rect x="85" y="22" width="500" height="20" fill="none" stroke="#777777" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="95" y="36" font-size="11" fill="#777777">URL: / (Calculator - Wireframe Blueprint)</text>
+
+  <!-- Wireframe Header / Navbar -->
+  <rect x="15" y="50" width="970" height="55" fill="#fcfcfc" stroke="#333333" stroke-width="1"/>
+  <rect x="40" y="65" width="160" height="25" fill="#e0e0e0" stroke="#333333" stroke-width="1.5"/>
+  <text x="50" y="82" font-size="12" font-weight="bold" fill="#111111">[LOGO / BRAND]</text>
+
+  <!-- Nav links wireframe -->
+  <rect x="740" y="65" width="85" height="25" fill="none" stroke="#333333" stroke-width="1"/>
+  <text x="758" y="81" font-size="11" fill="#111111">Log In</text>
+  <rect x="840" y="65" width="100" height="25" fill="#e0e0e0" stroke="#333333" stroke-width="1.5"/>
+  <text x="858" y="81" font-size="11" font-weight="bold" fill="#111111">Register</text>
+
+  <!-- Page Title Wireframe Placeholders -->
+  <text x="40" y="140" font-size="18" font-weight="bold" fill="#111111">&lt;H1: PAGE HEADING - CALCULATOR&gt;</text>
+  <line x1="40" y1="155" x2="520" y2="155" stroke="#999999" stroke-width="2"/>
+  <line x1="40" y1="165" x2="420" y2="165" stroke="#cccccc" stroke-width="2"/>
+
+  <!-- Left Column: Form Container (Wireframe box) -->
+  <rect x="40" y="190" width="530" height="440" fill="none" stroke="#333333" stroke-width="2"/>
+  <rect x="40" y="190" width="530" height="35" fill="#f0f0f0" stroke="#333333" stroke-width="1"/>
+  <text x="55" y="213" font-size="13" font-weight="bold" fill="#222222">[CONTAINER: PRODUCTION FORM INPUTS]</text>
+
+  <!-- Form Field Wireframes -->
+  <text x="60" y="250" font-size="11" fill="#333333">LABEL: Item Name</text>
+  <rect x="60" y="258" width="490" height="26" fill="#ffffff" stroke="#555555" stroke-width="1"/>
+  <text x="70" y="275" font-size="10" fill="#999999">[Text Input Placeholder]</text>
+
+  <text x="60" y="306" font-size="11" fill="#333333">LABEL: Printer Hardware</text>
+  <rect x="60" y="314" width="490" height="26" fill="#ffffff" stroke="#555555" stroke-width="1"/>
+  <text x="70" y="331" font-size="10" fill="#666666">[Dropdown Select: Printer Model] [v]</text>
+
+  <text x="60" y="362" font-size="11" fill="#333333">LABEL: Filament Type</text>
+  <rect x="60" y="370" width="230" height="26" fill="#ffffff" stroke="#555555" stroke-width="1"/>
+  <text x="70" y="387" font-size="10" fill="#666666">[Select: PLA/PETG/ABS] [v]</text>
+
+  <text x="320" y="362" font-size="11" fill="#333333">LABEL: Spool Price (£/kg)</text>
+  <rect x="320" y="370" width="230" height="26" fill="#ffffff" stroke="#555555" stroke-width="1"/>
+  <text x="330" y="387" font-size="10" fill="#999999">[Decimal Input]</text>
+
+  <text x="60" y="418" font-size="11" fill="#333333">LABEL: Weight Used (g)</text>
+  <rect x="60" y="426" width="230" height="26" fill="#ffffff" stroke="#555555" stroke-width="1"/>
+  <text x="70" y="443" font-size="10" fill="#999999">[Integer Input]</text>
+
+  <text x="320" y="418" font-size="11" fill="#333333">LABEL: Print Duration (hrs)</text>
+  <rect x="320" y="426" width="230" height="26" fill="#ffffff" stroke="#555555" stroke-width="1"/>
+  <text x="330" y="443" font-size="10" fill="#999999">[Decimal Input]</text>
+
+  <text x="60" y="474" font-size="11" fill="#333333">LABEL: Energy Tariff (£/kWh)</text>
+  <rect x="60" y="482" width="230" height="26" fill="#ffffff" stroke="#555555" stroke-width="1"/>
+  <text x="70" y="499" font-size="10" fill="#999999">[Decimal Input (default £0.25)]</text>
+
+  <text x="320" y="474" font-size="11" fill="#333333">LABEL: Desired Markup %</text>
+  <rect x="320" y="482" width="230" height="26" fill="#ffffff" stroke="#555555" stroke-width="1"/>
+  <text x="330" y="499" font-size="10" fill="#999999">[Integer Input (default 100%)]</text>
+
+  <!-- Submit Button (Box with diagonal wireframe cue) -->
+  <rect x="60" y="550" width="490" height="42" fill="#d0d0d0" stroke="#333333" stroke-width="1.5"/>
+  <text x="210" y="575" font-size="13" font-weight="bold" fill="#000000">[BUTTON: CALCULATE BREAKDOWN]</text>
+
+  <!-- Right Column: Output Card Wireframe -->
+  <rect x="600" y="190" width="360" height="270" fill="#ffffff" stroke="#333333" stroke-width="2"/>
+  <rect x="600" y="190" width="360" height="35" fill="#f0f0f0" stroke="#333333" stroke-width="1"/>
+  <text x="615" y="213" font-size="12" font-weight="bold" fill="#222222">[CONTAINER: CALCULATION RESULTS]</text>
+
+  <text x="620" y="255" font-size="11" fill="#444444">Total Production Cost:</text>
+  <text x="900" y="255" font-size="12" font-weight="bold" fill="#000000">[£X.XX]</text>
+  <line x1="620" y1="265" x2="940" y2="265" stroke="#e0e0e0" stroke-width="1"/>
+
+  <text x="620" y="295" font-size="11" fill="#444444">Recommended Retail Price:</text>
+  <text x="900" y="295" font-size="14" font-weight="bold" fill="#000000">[£X.XX]</text>
+  <line x1="620" y1="305" x2="940" y2="305" stroke="#e0e0e0" stroke-width="1"/>
+
+  <text x="620" y="335" font-size="11" fill="#444444">Estimated Profit Margin:</text>
+  <text x="900" y="335" font-size="12" font-weight="bold" fill="#000000">[£X.XX]</text>
+
+  <rect x="620" y="380" width="320" height="40" fill="#e8e8e8" stroke="#333333" stroke-width="1.5"/>
+  <text x="680" y="405" font-size="12" font-weight="bold" fill="#111111">[BUTTON: SAVE TO CATALOGUE]</text>
+
+  <!-- Guest / Auth Info Banner Wireframe -->
+  <rect x="600" y="480" width="360" height="150" fill="#fafafa" stroke="#666666" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <text x="620" y="515" font-size="12" font-weight="bold" fill="#222222">[GUEST CALLOUT BANNER]</text>
+  <line x1="620" y1="535" x2="930" y2="535" stroke="#cccccc" stroke-width="2"/>
+  <line x1="620" y1="547" x2="890" y2="547" stroke="#cccccc" stroke-width="2"/>
+  <rect x="620" y="570" width="130" height="32" fill="#e0e0e0" stroke="#333333" stroke-width="1"/>
+  <text x="638" y="590" font-size="11" font-weight="bold" fill="#111111">[REGISTER LINK]</text>
+</svg>
