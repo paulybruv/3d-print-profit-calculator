@@ -192,6 +192,17 @@ OK
 | **Delete Modal** | Click delete, cancel modal | Modal dismisses, record remains untouched | Pass |
 | **Confirm Delete** | Click delete, confirm in modal | Item removed from DB, catalogue reloads | Pass |
 
+### Lighthouse Audits
+
+Tested via Chrome DevTools Lighthouse (Chromium, Oct 16, 2026):
+
+| Device View | Performance | Accessibility | Best Practices | SEO | Full Report |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Desktop** | **100** | **96** | **100** | **100** | [View Desktop PDF](docs/3dprint-lighthouse-desktop.pdf) |
+| **Mobile** | **99** | **95** | **100** | **100** | [View Mobile PDF](docs/3dprint-lighthouse-mobile.pdf) |
+
+*Note: Initial accessibility check noted low-contrast text on muted descriptive notes; resolved by darkening secondary text classes to `#495057` to satisfy WCAG AA 4.5:1 ratio requirements.*
+
 ### Code Style (PEP 8)
 Enforced using `flake8` with a `.flake8` configuration excluding virtual environments and migrations:
 ```text

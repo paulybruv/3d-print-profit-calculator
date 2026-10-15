@@ -31,3 +31,20 @@
     outline: 0;
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
+
+/* Accessibility contrast overrides */
+.text-muted,
+.form-text {
+  color: #495057 !important; /* Darker than default #6c757d to meet 4.5:1 ratio */
+}
+
+::placeholder {
+  color: #555555 !important;
+  opacity: 1;
+}
+
+/* Ensure links and small badges exceed contrast thresholds */
+.badge-secondary {
+  background-color: #495057 !important;
+  color: #ffffff !important;
+}
