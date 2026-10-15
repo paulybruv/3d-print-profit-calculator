@@ -1,0 +1,25 @@
+{% extends 'print_calc/base.html' %}
+
+{% block title %}Sign Out - 3D Print Profit Calculator{% endblock %}
+
+{% block content %}
+<section class="row justify-content-center my-5" aria-labelledby="logout-heading">
+    <div class="col-12 col-md-8 col-lg-5">
+        <article class="card shadow-sm border-0 text-center">
+            <header class="card-header bg-dark text-white py-3">
+                <h1 id="logout-heading" class="h4 mb-0 text-white">👋 Sign Out</h1>
+            </header>
+            <div class="card-body p-4">
+                <p class="text-secondary mb-4">Are you sure you want to sign out of your account?</p>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'calculator' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-danger">Yes, Sign Out</button>
+                    </div>
+                </form>
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}

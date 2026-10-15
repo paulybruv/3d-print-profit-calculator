@@ -1,12 +1,14 @@
 """
 Views for the 3D Print Calculator application.
 
-Includes the public calculation estimator, personal saved print catalogue,
-and CRUD functionality to edit previously saved print records.
+Handles calculations, saved catalogue items, editing prints,
+and user registration using standard Django auth forms.
 """
 
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import get_object_or_404, redirect, render
 from .forms import SavedPrintForm
 from .models import SavedPrint
@@ -14,10 +16,10 @@ from .models import SavedPrint
 
 def calculator_view(request):
     """
-    Handles public 3D print calculations and user catalogue saving.
+    Public calculator view.
 
-    If authenticated, saving commits directly to the user's catalogue.
-    If anonymous, calculation runs in memory and displays estimate cards.
+    Saves directly to user account if logged in, or displays
+    a live in-memory estimate if anonymous.
     """
     calculated_result = None
 
@@ -51,10 +53,11 @@ def calculator_view(request):
                     * float(print_item.electricity_rate_kwh)
                 )
 
-                failure_multiplier = 1.15 if print_item.filament_type in [
-                    "ABS",
-                    "TPU",
-                ] else 1.05
+                failure_multiplier = (
+                    1.15
+                    if print_item.filament_type in ["ABS", "TPU"]
+                    else 1.05
+                )
                 total_cost = round(
                     (filament_cost + electricity_cost) * failure_multiplier, 2
                 )
@@ -87,7 +90,7 @@ def calculator_view(request):
 
 @login_required
 def catalogue_view(request):
-    """Displays the user's saved 3D prints catalogue and summary stats."""
+    """Displays the authenticated user's saved print items."""
     saved_prints = SavedPrint.objects.filter(user=request.user).order_by(
         "-created_on"
     )
@@ -110,12 +113,7 @@ def catalogue_view(request):
 
 @login_required
 def edit_print_view(request, pk):
-    """
-    Fetches an existing saved print and allows updating.
-
-    Saves automatically recalculate total cost, retail price, and profit
-    via the model's custom save method.
-    """
+    """Fetches and updates an existing print calculation."""
     saved_print = get_object_or_404(SavedPrint, pk=pk, user=request.user)
 
     if request.method == "POST":
@@ -135,3 +133,24 @@ def edit_print_view(request, pk):
         "saved_print": saved_print,
     }
     return render(request, "print_calc/edit_print.html", context)
+
+
+def signup_view(request):
+    """Handles standard user registration."""
+    if request.user.is_authenticated:
+        return redirect("calculator")
+
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(
+                request,
+                f"Account created successfully. Welcome, {user.username}!",
+            )
+            return redirect("calculator")
+    else:
+        form = UserCreationForm()
+
+    return render(request, "print_calc/signup.html", {"form": form})
