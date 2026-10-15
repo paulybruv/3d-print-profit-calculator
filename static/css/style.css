@@ -1,0 +1,10 @@
+/* Custom application styles */
+
+/* Example: Ensure smooth card rendering */
+.card {
+    transition: transform 0.15s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}

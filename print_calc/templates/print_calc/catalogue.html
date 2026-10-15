@@ -1,0 +1,56 @@
+{% extends 'print_calc/base.html' %}
+
+{% block title %}My Saved Catalogue - 3D Print Profit Calculator{% endblock %}
+
+{% block content %}
+<section class="container my-4" aria-labelledby="catalogue-heading">
+    <!-- Top summary bar -->
+    <header class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h1 id="catalogue-heading" class="h2 mb-1">🗂️ Your Saved Print Catalogue</h1>
+            <p class="text-secondary mb-0">Total Saved Prints: <strong>{{ total_items }}</strong> | Average Profit: <strong>£{{ avg_profit }}</strong></p>
+        </div>
+        <div class="mt-2 mt-sm-0">
+            <a href="{% url 'calculator' %}" class="btn btn-primary" aria-label="Create a new print calculation">+ New Calculation</a>
+        </div>
+    </header>
+
+    <!-- If user has saved prints, display them as cards -->
+    {% if saved_prints %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for item in saved_prints %}
+                <div class="col">
+                    <article class="card h-100 shadow-sm border-0">
+                        <header class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                            <h2 class="h5 fw-bold mb-0 text-white">{{ item.item_name }}</h2>
+                            <span class="badge bg-secondary text-white">{{ item.filament_type }}</span>
+                        </header>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="py-1"><strong>Printer:</strong> {{ item.printer.brand }} {{ item.printer.name }}</li>
+                                <li class="py-1"><strong>Weight:</strong> {{ item.filament_grams_used }}g</li>
+                                <li class="py-1"><strong>Print Time:</strong> {{ item.print_time_hours }} hrs</li>
+                                <li><hr class="my-2 border-secondary-subtle"></li>
+                                <li class="py-1"><strong>Total Cost:</strong> £{{ item.total_cost }}</li>
+                                <li class="py-1"><strong>Retail Price:</strong> <span class="text-success fw-bold">£{{ item.recommended_retail_price }}</span></li>
+                                <li class="py-1"><strong>Estimated Profit:</strong> <span class="text-primary fw-bold">£{{ item.profit_per_item }}</span></li>
+                            </ul>
+                        </div>
+                        <footer class="card-footer bg-light d-flex justify-content-between align-items-center py-2">
+                            <small class="text-secondary">Saved on {{ item.created_on|date:"M d, Y" }}</small>
+                            <a href="{% url 'edit_print' item.pk %}" class="btn btn-outline-dark btn-sm" aria-label="Edit {{ item.item_name }}">Edit Print</a>
+                        </footer>
+                    </article>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty state placeholder -->
+        <div class="alert alert-info text-center p-4 shadow-sm" role="status">
+            <h2 class="h5 alert-heading">No saved prints yet!</h2>
+            <p class="mb-3">Use the calculator to work out your 3D print costs and save them to your personal catalogue.</p>
+            <a href="{% url 'calculator' %}" class="btn btn-outline-primary">Open Calculator</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

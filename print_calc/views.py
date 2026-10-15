@@ -1,12 +1,24 @@
+"""
+Views for the 3D Print Calculator application.
+
+Includes the public calculation estimator, personal saved print catalogue,
+and CRUD functionality to edit previously saved print records.
+"""
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from .forms import SavedPrintForm
 from .models import SavedPrint
 
 
 def calculator_view(request):
-    """Handles public 3D print calculations and user catalogue saving."""
+    """
+    Handles public 3D print calculations and user catalogue saving.
+
+    If authenticated, saving commits directly to the user's catalogue.
+    If anonymous, calculation runs in memory and displays estimate cards.
+    """
     calculated_result = None
 
     if request.method == "POST":
@@ -39,11 +51,10 @@ def calculator_view(request):
                     * float(print_item.electricity_rate_kwh)
                 )
 
-                failure_multiplier = (
-                    1.15
-                    if print_item.filament_type in ["ABS", "TPU"]
-                    else 1.05
-                )
+                failure_multiplier = 1.15 if print_item.filament_type in [
+                    "ABS",
+                    "TPU",
+                ] else 1.05
                 total_cost = round(
                     (filament_cost + electricity_cost) * failure_multiplier, 2
                 )
@@ -95,3 +106,32 @@ def catalogue_view(request):
         "avg_profit": avg_profit,
     }
     return render(request, "print_calc/catalogue.html", context)
+
+
+@login_required
+def edit_print_view(request, pk):
+    """
+    Fetches an existing saved print and allows updating.
+
+    Saves automatically recalculate total cost, retail price, and profit
+    via the model's custom save method.
+    """
+    saved_print = get_object_or_404(SavedPrint, pk=pk, user=request.user)
+
+    if request.method == "POST":
+        form = SavedPrintForm(request.POST, instance=saved_print)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                f"Successfully updated '{saved_print.item_name}'!",
+            )
+            return redirect("catalogue")
+    else:
+        form = SavedPrintForm(instance=saved_print)
+
+    context = {
+        "form": form,
+        "saved_print": saved_print,
+    }
+    return render(request, "print_calc/edit_print.html", context)

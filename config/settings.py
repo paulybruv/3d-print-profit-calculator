@@ -20,7 +20,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u_dw%y9pb6s7ifl*#uggj#e-3n#pg#4y&w-6vh1+&q%3lou^b1'
+SECRET_KEY = (
+    'django-insecure-u_dw%y9pb6s7ifl*#uggj#e-3n#pg#4y&w-6vh1+&q%3lou^b1'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
     # Required for django-allauth
     'django.contrib.sites',
     'allauth',
@@ -98,16 +99,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',  # noqa: E501
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',  # noqa: E501
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',  # noqa: E501
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',  # noqa: E501
     },
 ]
 
@@ -138,3 +139,21 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+# -------------------------------------------------------------------------
+# AUTHENTICATION & REDIRECT SETTINGS (django-allauth)
+# -------------------------------------------------------------------------
+
+# Tells Django where to send the user immediately after they log in or sign
+# up.
+# 'calculator' refers to the named route for our main homepage in
+# print_calc/urls.py.
+# Without this, Django tries to load '/accounts/profile/' which creates a
+# 404 broken page.
+LOGIN_REDIRECT_URL = "calculator"
+
+# Tells allauth not to look for an email server to verify accounts during
+# testing.
+# 'none' lets the user register and start using the site instantly without
+# a broken email error.
+ACCOUNT_EMAIL_VERIFICATION = "none"
