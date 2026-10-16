@@ -237,7 +237,7 @@ $ flake8
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/paulybruv/3d-print-profit-calculator.git](https://github.com/paulybruv/3d-print-profit-calculator.git)
+   git clone https://github.com/paulybruv/3d-print-profit-calculator.git
    cd 3d-print-profit-calculator
    ```
 
@@ -272,9 +272,9 @@ $ flake8
 
 ## 12. Future Roadmap & Planned Deployment
 
-* **Heroku Deployment**: Configure `Procfile`, `whitenoise`, and PostgreSQL connection via `dj-database-url` prior to final submission.
-* **Code Validation**: Run formal W3C HTML, W3C CSS, and Google Lighthouse audits once the UI is finalized.
-* **Custom Error Handling**: Add user-friendly 404 and 500 error templates.
+* **Heroku Deployment**: Finalize `Procfile` and production PostgreSQL environment variables on Heroku prior to submission.
+* **Code Validation**: Run formal W3C HTML and W3C CSS validator checks alongside the completed Google Lighthouse audits.
+* **CSV / PDF Export**: Allow makers to export their saved print catalogue for bookkeeping and tax reporting.
 
 ---
 

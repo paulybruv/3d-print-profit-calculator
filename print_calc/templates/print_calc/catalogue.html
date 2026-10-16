@@ -48,7 +48,7 @@
                             <ul class="list-group list-group-flush small mb-3">
                                 <li class="list-group-item d-flex justify-content-between px-0">
                                     <span>Printer:</span>
-                                    <strong>{{ item.printer.name }}</strong>
+                                    <strong>{{ item.printer.name|default:"Standard Printer" }}</strong>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between px-0">
                                     <span>Filament Used:</span>
@@ -64,7 +64,7 @@
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between px-0">
                                     <span>Retail Price:</span>
-                                    <strong class="text-success">£{{ item.retail_price }}</strong>
+                                    <strong class="text-success">£{{ item.recommended_retail_price }}</strong>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between px-0">
                                     <span>Profit Margin:</span>

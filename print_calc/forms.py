@@ -14,6 +14,7 @@ class SavedPrintForm(forms.ModelForm):
             "spool_price_per_kg",
             "filament_grams_used",
             "print_time_hours",
+            "electricity_rate_kwh",
             "markup_percentage",
         ]
         widgets = {
@@ -33,6 +34,9 @@ class SavedPrintForm(forms.ModelForm):
             ),
             "print_time_hours": forms.NumberInput(
                 attrs={"class": "form-control", "step": "0.1"}
+            ),
+            "electricity_rate_kwh": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01"}
             ),
             "markup_percentage": forms.NumberInput(
                 attrs={"class": "form-control"}

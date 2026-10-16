@@ -82,7 +82,7 @@ class SavedPrint(models.Model):
     )
     created_on = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
+    def calculate_pricing(self):
         """Calculates costs and retail prices using Decimal precision."""
         two_places = Decimal("0.01")
 
@@ -90,11 +90,16 @@ class SavedPrint(models.Model):
             self.spool_price_per_kg / Decimal("1000")
         ) * Decimal(self.filament_grams_used)
 
-        watts = (
-            self.printer.average_watts_abs
-            if self.filament_type in ["ABS", "TPU"]
-            else self.printer.average_watts_pla
-        )
+        is_high_temp = self.filament_type in ["ABS", "TPU"]
+        if self.printer:
+            watts = (
+                self.printer.average_watts_abs
+                if is_high_temp
+                else self.printer.average_watts_pla
+            )
+        else:
+            watts = 150 if is_high_temp else 100
+
         electricity_cost = (
             (Decimal(watts) / Decimal("1000"))
             * self.print_time_hours
@@ -102,9 +107,7 @@ class SavedPrint(models.Model):
         )
 
         failure_multiplier = (
-            Decimal("1.15")
-            if self.filament_type in ["ABS", "TPU"]
-            else Decimal("1.05")
+            Decimal("1.15") if is_high_temp else Decimal("1.05")
         )
 
         calculated_cost = (
@@ -123,6 +126,9 @@ class SavedPrint(models.Model):
         self.recommended_retail_price = calculated_retail
         self.profit_per_item = calculated_retail - calculated_cost
 
+    def save(self, *args, **kwargs):
+        """Calculates pricing metrics before saving the record."""
+        self.calculate_pricing()
         super().save(*args, **kwargs)
 
     def __str__(self):
