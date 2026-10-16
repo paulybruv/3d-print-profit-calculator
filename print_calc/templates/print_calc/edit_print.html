@@ -3,9 +3,9 @@
 {% block title %}Edit {{ saved_print.item_name }} - 3D Print Profit Calculator{% endblock %}
 
 {% block content %}
-<section class="row justify-content-center my-4" aria-labelledby="edit-heading">
+<div class="row justify-content-center my-4">
     <div class="col-12 col-md-8 col-lg-6">
-        <article class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0">
             <header class="card-header bg-dark text-white text-center py-3">
                 <h1 id="edit-heading" class="h4 mb-0 text-white">✏️ Edit {{ saved_print.item_name }}</h1>
             </header>
@@ -34,7 +34,7 @@
                     </div>
                 </form>
             </div>
-        </article>
+        </div>
     </div>
-</section>
+</div>
 {% endblock %}

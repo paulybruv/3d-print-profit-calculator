@@ -9,6 +9,7 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+from .forms import SavedPrintForm
 from .models import PrinterMachine, SavedPrint
 
 
@@ -73,6 +74,49 @@ class SavedPrintModelTests(TestCase):
         )
         self.assertEqual(saved_print.profit_per_item, Decimal("1.08"))
 
+    def test_abs_failure_multiplier_calculation(self):
+        """
+        Verify that ABS filament uses high-temp watts and 15% buffer (1.15x).
+        """
+        saved_print = SavedPrint(
+            user=self.user,
+            printer=self.printer,
+            item_name="ABS Enclosure Bracket",
+            filament_type="ABS",
+            spool_price_per_kg=Decimal("20.00"),
+            filament_grams_used=100,
+            print_time_hours=Decimal("2.00"),
+            electricity_rate_kwh=Decimal("0.30"),
+            markup_percentage=100,
+        )
+        saved_print.save()
+
+        # Filament: (20.00 / 1000) * 100 = 2.00
+        # Power (150W ABS): (150 / 1000) * 2.00 * 0.30 = 0.09
+        # Subtotal: 2.09 -> Buffer (1.15x): 2.4035 -> Rounded: 2.40
+        self.assertEqual(saved_print.total_cost, Decimal("2.40"))
+        self.assertEqual(
+            saved_print.recommended_retail_price, Decimal("4.80")
+        )
+        self.assertEqual(saved_print.profit_per_item, Decimal("2.40"))
+
+    def test_negative_form_values_rejected(self):
+        """Ensure SavedPrintForm rejects negative numeric inputs."""
+        form = SavedPrintForm(
+            data={
+                "printer": self.printer.id,
+                "item_name": "Invalid Print",
+                "filament_type": "PLA",
+                "spool_price_per_kg": "-15.00",
+                "filament_grams_used": 50,
+                "print_time_hours": "1.50",
+                "electricity_rate_kwh": "0.25",
+                "markup_percentage": 50,
+            }
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("spool_price_per_kg", form.errors)
+
 
 class ViewAccessTests(TestCase):
     """Test URL routing and access controls across public and private views."""
@@ -121,7 +165,7 @@ class CrudOperationTests(TestCase):
         )
         self.printer = PrinterMachine.objects.create(
             brand="Prusa",
-            name="MK4",
+            name="MK4S",
             average_watts_pla=90,
             average_watts_abs=140,
         )

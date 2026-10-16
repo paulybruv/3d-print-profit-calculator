@@ -6,6 +6,7 @@ Contains machine specifications and saved custom print calculations.
 
 from decimal import Decimal, ROUND_HALF_UP
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -53,18 +54,26 @@ class SavedPrint(models.Model):
         max_length=20, choices=FILAMENT_CHOICES, default="PLA"
     )
     spool_price_per_kg = models.DecimalField(
-        max_digits=6, decimal_places=2, help_text="Cost per 1kg spool in £"
+        max_digits=6,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Cost per 1kg spool in £",
     )
     filament_grams_used = models.PositiveIntegerField(
-        help_text="Total filament used in grams"
+        validators=[MinValueValidator(1)],
+        help_text="Total filament used in grams",
     )
     print_time_hours = models.DecimalField(
-        max_digits=5, decimal_places=2, help_text="Total print time in hours"
+        max_digits=5,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Total print time in hours",
     )
     electricity_rate_kwh = models.DecimalField(
         max_digits=4,
         decimal_places=2,
         default=Decimal("0.25"),
+        validators=[MinValueValidator(Decimal("0.01"))],
         help_text="Cost per kWh in £",
     )
     markup_percentage = models.PositiveIntegerField(

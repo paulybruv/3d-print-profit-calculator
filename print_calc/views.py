@@ -9,9 +9,33 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect, render
 from .forms import SavedPrintForm
 from .models import SavedPrint
+
+
+@receiver(user_logged_in)
+def notify_user_login(sender, request, user, **kwargs):
+    """Displays a confirmation message when a user signs in."""
+    if request:
+        messages.success(
+            request,
+            f"Welcome back, {user.username}! You are signed in.",
+            fail_silently=True,
+        )
+
+
+@receiver(user_logged_out)
+def notify_user_logout(sender, request, user, **kwargs):
+    """Displays a confirmation message when a user signs out."""
+    if request:
+        messages.info(
+            request,
+            "You have been safely signed out.",
+            fail_silently=True,
+        )
 
 
 def calculator_view(request):

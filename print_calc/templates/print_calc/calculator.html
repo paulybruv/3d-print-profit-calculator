@@ -3,11 +3,11 @@
 {% block title %}Calculator - 3D Print Profit Calculator{% endblock %}
 
 {% block content %}
-<section class="container my-4" aria-labelledby="calc-page-title">
+<div class="container my-4">
     <div class="row g-4">
         <!-- Form Column -->
         <div class="col-12 col-lg-7">
-            <article class="card shadow-sm border-0">
+            <div class="card shadow-sm border-0">
                 <header class="card-header bg-dark text-white py-3">
                     <h1 id="calc-page-title" class="h4 mb-0 text-white">⚙️ 3D Print Cost Calculator</h1>
                 </header>
@@ -43,7 +43,7 @@
                         </div>
                     </form>
                 </div>
-            </article>
+            </div>
         </div>
 
         <!-- Result / Information Column -->
@@ -91,5 +91,5 @@
             {% endif %}
         </aside>
     </div>
-</section>
+</div>
 {% endblock %}

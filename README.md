@@ -42,44 +42,46 @@ A full-stack Django web application designed for 3D printing hobbyists, makers, 
 
 ## 2. Agile Methodology & User Stories
 
-Development was organized into prioritized user stories:
+Project planning and task tracking were managed using **GitHub Projects** following Agile and MoSCoW prioritization principles.
 
-### Implemented Stories
-* **US01 (Must Have): Public Calculator Form**
-  * *Acceptance Criteria*: Guest visitors can input item name, printer hardware, filament type, spool price, grams, time, electricity tariff, and profit markup percentage.
-* **US02 (Must Have): Instant Cost Breakdown**
-  * *Acceptance Criteria*: Form calculates filament cost, electricity overhead, total cost with failure buffer, recommended retail price, and profit.
-* **US03 (Must Have): User Authentication (Standard Django Auth)**
-  * *Acceptance Criteria*: Users can register, log in, and log out with clear flash messages. Guest users are prevented from accessing private catalogue data.
-* **US04 (Must Have): Full CRUD Print Catalogue**
-  * *Acceptance Criteria*: Logged-in users can Create, Read, Update, and Delete saved prints. Saved records are strictly isolated to the logged-in user.
-* **US05 (Should Have): Accessible Confirmation Modals**
-  * *Acceptance Criteria*: Deleting an item triggers a Bootstrap modal requiring a secondary confirmation POST action to prevent accidental deletion.
-* **US06 (Should Have): Catalogue Summary Metrics**
-  * *Acceptance Criteria*: The catalogue dashboard displays running statistical metric cards (Total Saved Items, Average Profit per Item).
-* **US07 (Could Have): Multi-Filament Presets**
-  * *Acceptance Criteria*: Automatic assignment of dynamic failure buffers (5% for standard PLA/PETG; 15% for high-temperature ABS/TPU).
+* **📋 Public Agile Project Board:** [GitHub Projects Kanban Board](https://github.com/users/paulybruv/projects/10/views/1)
+
+### Epics & MoSCoW Prioritization Matrix
+
+| ID | User Story | Epic | MoSCoW Priority | Project Goal Link | Status |
+| :--- | :--- | :--- | :---: | :--- | :---: |
+| **US01** | As a **Guest Visitor**, I can input item name, printer hardware, filament type, spool price, grams, time, electricity tariff, and profit markup so that I can estimate production costs immediately. | Core Calculator | **Must Have** | Instant Cost Estimation | ✅ Done |
+| **US02** | As a **Maker**, I can see a clear breakdown of filament cost, electricity overhead, total cost with failure buffer, recommended retail price, and profit per item. | Core Calculator | **Must Have** | Profit & Retail Transparency | ✅ Done |
+| **US03** | As a **User**, I can register, log in, and log out with clear flash notifications so that my personal catalogue remains private and secure. | Authentication & Roles | **Must Have** | Role-Based Access Control | ✅ Done |
+| **US04** | As a **Logged-In User**, I can Create, Read, Update, and Delete saved print calculations so that I can maintain an accurate product catalogue over time. | Catalogue CRUD | **Must Have** | Persistent Catalogue Management | ✅ Done |
+| **US05** | As a **Logged-In User**, I am prompted with an accessible confirmation modal before deleting a saved print so that I avoid accidental data loss. | Defensive UX | **Should Have** | Defensive Design & Safety | ✅ Done |
+| **US06** | As a **Logged-In User**, I can view summary statistical cards (Total Saved Items, Average Profit per Item) at the top of my catalogue. | Analytics Dashboard | **Should Have** | Business Margin Insights | ✅ Done |
+| **US07** | As a **Maker**, I can select different filament types (`PLA`, `PETG`, `ABS`, `TPU`) that automatically apply appropriate machine wattages and failure risk buffers (5% vs 15%). | Domain Logic | **Could Have** | Real-World 3D Printing Accuracy | ✅ Done |
 
 ---
 
-## 3. AI Augmentation & Implementation
+## 3. AI Augmentation & Implementation (LO8)
 
-As part of the AI-augmented developer workflow, Large Language Models and AI developer tooling were incorporated across the development cycle.
+**Google Antigravity** (agentic AI coding assistant) and **GitHub Copilot** were strategically leveraged across the software development lifecycle to accelerate scaffolding, full-codebase auditing, debugging, optimization, and testing.
 
-### 1. Architecture & Model Refinement
-* **Auth Optimization**: Evaluated authentication options and decided to replace heavy third-party packages (`django-allauth`) with standard Django authentication (`django.contrib.auth`), customized Bootstrap templates, and POST-only logout handling.
-* **Decimal Precision**: Assisted in identifying floating-point rounding hazards, leading to the transition of `SavedPrint.save()` calculations to Python's `decimal.Decimal` module using `ROUND_HALF_UP` quantization.
+### 8.1 Using AI Tools to Assist in Code Creation
+* **Model, Migration & Form Scaffolding**: Used **Google Antigravity** and **GitHub Copilot** to structure the relational `PrinterMachine` and `SavedPrint` models, generate Bootstrap-styled `SavedPrintForm` widgets (including `electricity_rate_kwh`), and author data migration `0002` to automatically seed default 3D printer profiles (`Bambu Lab`, `Prusa`, `Creality`).
+* **Auth & Notification Architecture**: Evaluated authentication options with **Antigravity** and transitioned from heavy third-party packages (`django-allauth`) to lightweight standard Django authentication (`django.contrib.auth`) paired with `user_logged_in` / `user_logged_out` signal receivers for real-time flash notifications.
 
-### 2. Testing Scaffolding & Debugging
-* **Automated Unit Testing**: Generated test structures in `print_calc/tests.py` covering model representation, mathematical calculation accuracy, failure multiplier thresholds, view access redirection, and full CRUD workflows.
-* **Traceback Diagnostics**: Diagnosed model-test mismatches during test suite execution, resolving a string formatting whitespace bug in `PrinterMachine.__str__` and reconciling float vs `Decimal` type assertions.
+### 8.2 Using AI Tools to Assist in Debugging Code
+* **Full-Project Codebase Audit with Antigravity**: Used **Google Antigravity** to perform a comprehensive review of all templates, views, models, and settings—catching a silent Django template bug in `catalogue.html` where `{{ item.retail_price }}` was referenced instead of `{{ item.recommended_retail_price }}`.
+* **Floating-Point & Validation Fixes**: Identified binary floating-point rounding discrepancies in currency math and refactored calculations to `decimal.Decimal` (`ROUND_HALF_UP`). Used **Antigravity** to diagnose and resolve live W3C Nu HTML Validator errors (URL-encoding the inline SVG favicon data URI in `base.html` and adding `role="dialog"` to the delete confirmation modal in `catalogue.html`) as well as `fail_silently=True` handling on auth signals during test client execution.
 
-### 3. Code Quality & Standards
-* **PEP 8 Compliance**: Guided `.flake8` configuration and helped identify formatting adjustments to maintain 100% PEP 8 compliance.
-* **Wireframe Assets**: Assisted in authoring low-fidelity, monochromatic SVG blueprint wireframes (`calculator-desktop.svg` and `catalogue-mobile.svg`) stored in `docs/wireframes/`.
+### 8.3 Using AI Tools to Optimize Code for Performance & UX
+* **DRY Calculation Refactoring**: Collaborated with **Antigravity** to consolidate duplicate guest (`float`) vs. authenticated (`Decimal`) calculation logic in `views.py` and `models.py` into a single reusable `SavedPrint.calculate_pricing()` method with null-safe printer wattage fallbacks.
+* **Accessibility & WCAG Contrast Optimization**: Audited Lighthouse and W3C accessibility reports with **Antigravity**, darkening muted secondary text (`#495057`) to exceed the 4.5:1 WCAG AA contrast threshold, adding skip-to-content navigation, and ensuring clean top-level `<h1>` heading hierarchy.
 
-### 4. Developer Reflection
-All AI suggestions were reviewed, executed, and tested locally. Edge cases and incorrect assumptions (such as high-fidelity colored mockups instead of true wireframes, or premature deployment claims) were caught, challenged, and corrected during development.
+### 8.4 Using GitHub Copilot & Antigravity to Create Automated Unit Tests
+* **Test Suite Generation**: Used **GitHub Copilot** and **Google Antigravity** to scaffold and expand Django `TestCase` classes in `print_calc/tests.py` covering model string representations, `PLA` (5%) and `ABS` (15%) failure buffer calculations, negative input rejection (`MinValueValidator`), view access control redirects, and authenticated CRUD POST workflows.
+* **Developer Adjustments to AI Test Output**: Adjusted initial `float` assertions to strict `Decimal("...")` comparisons, added explicit `refresh_from_db()` checks on update tests, and ensured test printer names (`MK4S`) did not collide with seeded migration records.
+
+### 8.5 Reflection on AI's Role and Impact on Workflow
+* Pairing **Google Antigravity** (for multi-file architectural reviews, automated terminal test/linter verification, and live W3C validation checks) with **GitHub Copilot** (for inline code and test completions) dramatically improved development velocity and code quality. Every AI suggestion was critically reviewed, tested, and challenged—such as catching unexecuted validation steps early and verifying all 9 unit tests, `flake8`, and W3C checks directly before committing.
 
 ---
 
@@ -103,8 +105,8 @@ The application relies on two relational models in `print_calc/models.py`:
     |          PrinterMachine           |         |            SavedPrint             |
     +-----------------------------------+         +-----------------------------------+
     | id (PK)                           |         | id (PK)                           |
-    | name: CharField(100)              | <-----+ | user: FK(User)                    |
-    | brand: CharField(50)              |         | printer: FK(PrinterMachine, NULL) |
+    | name: CharField(100, unique)      | <-----+ | user: FK(User, CASCADE)           |
+    | brand: CharField(50, blank)       |         | printer: FK(PrinterMachine, NULL) |
     | average_watts_pla: PositiveInt    |         | item_name: CharField(150)         |
     | average_watts_abs: PositiveInt    |         | filament_type: CharField(20)      |
     +-----------------------------------+         | spool_price_per_kg: Decimal(6,2)  |
@@ -122,7 +124,7 @@ The application relies on two relational models in `print_calc/models.py`:
 
 ## 6. Calculation Logic & Formulas
 
-All cost calculations are performed within `SavedPrint.save()` using Python's `decimal.Decimal` module (`ROUND_HALF_UP`):
+All cost calculations are performed within `SavedPrint.calculate_pricing()` (invoked automatically by `SavedPrint.save()` and `calculator_view`) using Python's `decimal.Decimal` module (`ROUND_HALF_UP`):
 
 1. **Filament Cost:**  
    `Filament Cost = (Spool Price / 1000) * Grams Used`
@@ -145,56 +147,75 @@ All cost calculations are performed within `SavedPrint.save()` using Python's `d
 ## 7. Features & Defensive Design
 
 ### Implemented Features
-* **Interactive Cost Calculator**: Allows instant mathematical projections without requiring an account.
-* **Authentication Suite**: Standard Django authentication with customized Bootstrap templates, CSRF tokens, and POST-only logouts.
-* **Catalogue Dashboard**: Responsive grid cards with filament badges, metric cards, and timestamp metadata.
-* **Defensive CRUD**: Update and Delete operations restricted exclusively to the creator of the item.
+* **Interactive Cost Calculator**: Allows instant mathematical projections for guests and one-click saving for authenticated users.
+* **Role-Based Authentication Suite**: Standard Django authentication with user registration, login/logout flash notifications, and Django Admin hardware management for staff/superusers.
+* **Catalogue Dashboard**: Responsive grid cards with filament badges, summary metric cards, and timestamp metadata.
+* **Defensive CRUD & Custom Error Pages**: Update and Delete operations restricted exclusively to the creator of the item, backed by custom branded `404.html` and `500.html` error templates.
 
 ### Defensive Programming Matrix
 
 | Scenario | Potential Risk | Defensive Mechanism Implemented |
 | :--- | :--- | :--- |
 | **Unauthenticated URL Access** | Guest attempts typing `/catalogue/` directly | Intercepted by `@login_required`; redirected to `/login/?next=/catalogue/`. |
-| **Cross-User Data Tampering** | User B attempts editing User A's print ID | View queries `SavedPrint.objects.filter(user=request.user, id=pk)`. Returns 404 if item does not belong to logged-in user. |
+| **Cross-User Data Tampering** | User B attempts editing/deleting User A's print ID | View queries `get_object_or_404(SavedPrint, pk=pk, user=request.user)`. Returns custom 404 if item does not belong to logged-in user. |
 | **Accidental Deletion** | Accidental click on delete button | Accessible Bootstrap modal intercepts action; requires secondary explicit confirmation. |
-| **Crawler / GET Deletion** | Web crawler triggers destructive GET request | Delete route only responds to `POST` method; GET requests are rejected. |
-| **Invalid Form Inputs** | Negative values entered | Django Model fields (`PositiveIntegerField`, `DecimalField`) enforce valid values. |
+| **Crawler / GET Deletion** | Web crawler triggers destructive GET request | Delete route only executes deletion on `POST`; GET requests redirect safely back to catalogue. |
+| **Invalid / Negative Form Inputs** | Negative or zero values entered for price, weight, or time | Enforced via `PositiveIntegerField` and `MinValueValidator(Decimal("0.01"))` with clear inline form error messages. |
 
 ---
 
-## 8. Testing & Quality Assurance
+## 8. Testing & Quality Assurance (LO4)
 
-### Automated Testing (`python manage.py test`)
-Automated tests in `print_calc/tests.py` cover models, views, and full CRUD workflows:
+### 4.1 Automated Python Testing (`python manage.py test`)
+Automated unit tests in `print_calc/tests.py` cover models, calculation accuracy, form validation, view access control, and full CRUD workflows:
 * `PrinterMachineModelTests.test_printer_string_representation`: Confirms correct `__str__` formatting.
 * `SavedPrintModelTests.test_pla_failure_multiplier_calculation`: Validates `Decimal` precision formulas, 5% PLA failure buffer, and retail pricing.
+* `SavedPrintModelTests.test_abs_failure_multiplier_calculation`: Validates high-temp wattage selection and 15% ABS failure buffer.
+* `SavedPrintModelTests.test_negative_form_values_rejected`: Verifies `SavedPrintForm` and `MinValueValidator` reject negative numeric inputs.
 * `ViewAccessTests.test_calculator_page_loads_for_anonymous_user`: Verifies public access (HTTP 200).
-* `ViewAccessTests.test_catalogue_redirects_unauthenticated_user`: Verifies redirect (HTTP 302).
+* `ViewAccessTests.test_catalogue_redirects_unauthenticated_user`: Verifies unauthenticated redirect (HTTP 302).
 * `ViewAccessTests.test_catalogue_loads_for_authenticated_user`: Verifies authenticated catalogue access (HTTP 200).
 * `CrudOperationTests.test_edit_print_updates_record`: Validates record update via POST request.
 * `CrudOperationTests.test_delete_print_removes_record_via_post`: Validates record deletion via POST request.
 
-All 7 automated tests run cleanly:
+All 9 automated tests pass with zero errors:
 ```text
-Ran 7 tests in 8.031s
+Ran 9 tests in 8.1s
 OK
 ```
 
-### Manual Testing
+### 4.2 JavaScript & Interactive Component Testing
+The application deliberately avoids custom JavaScript files in favor of declarative **Bootstrap 5.3** `data-bs-*` attributes (`bootstrap.bundle.min.js`) to minimize bundle overhead and prevent client-side calculation tampering. Interactive UI behaviors—including the responsive mobile navigation drawer (`data-bs-toggle="collapse"`), dismissible notification alerts (`data-bs-dismiss="alert"`), and per-item delete confirmation modals (`data-bs-toggle="modal"`)—were manually verified across desktop and mobile viewports.
+
+### 4.3 Manual Testing Matrix
 
 | Feature | Action | Expected Result | Result |
-| :--- | :--- | :--- | :--- |
-| **Calculator Form** | Fill out inputs and click Calculate | Calculations display accurately with breakdown | Pass |
-| **Guest Callout** | View calculator as guest | Banner encourages registration to save prints | Pass |
-| **User Sign Up** | Submit registration form | Account created, logged in, redirected to catalogue | Pass |
-| **Catalogue View** | Log in and view catalogue | User-specific prints display with metrics | Pass |
-| **Edit Calculation** | Change spool price and submit | New retail price and cost computed, DB updated | Pass |
-| **Delete Modal** | Click delete, cancel modal | Modal dismisses, record remains untouched | Pass |
-| **Confirm Delete** | Click delete, confirm in modal | Item removed from DB, catalogue reloads | Pass |
+| :--- | :--- | :--- | :---: |
+| **Calculator Form (Guest)** | Fill out inputs and click Calculate | Calculations display accurately with info flash message and guest callout | Pass |
+| **Form Validation** | Submit negative spool price or empty required fields | Submission blocked; inline field error messages displayed | Pass |
+| **User Sign Up** | Submit registration form | Account created, user logged in, welcome flash message displayed | Pass |
+| **Login / Logout Flash** | Sign in and sign out via navbar | Flash alerts confirm login (`Welcome back...`) and logout (`Safely signed out`) | Pass |
+| **Catalogue View** | Log in and view catalogue | User-specific prints display with accurate retail prices and summary metrics | Pass |
+| **Edit Calculation** | Change spool price or electricity tariff and submit | New retail price and cost computed, DB updated, success alert shown | Pass |
+| **Delete Modal (Cancel)** | Click delete, cancel modal | Modal dismisses, record remains untouched | Pass |
+| **Confirm Delete (POST)** | Click delete, confirm in modal | Item removed from DB, catalogue reloads with confirmation message | Pass |
+| **Cross-User Access Guard** | Attempt `/edit/<id>/` of another user's print | Returns 404 Not Found error page | Pass |
 
-### Lighthouse Audits
+### Code Validation & Lighthouse Audits
 
-Tested via Chrome DevTools Lighthouse (Chromium, Oct 16, 2026):
+* **Python PEP 8 (`flake8`)**: Enforced with `.flake8` (`max-line-length = 79`). Passes with **0 errors / 0 warnings** (`100% compliant`).
+* **W3C HTML5 & CSS3 Validation** (Tested via official [W3C Nu HTML & CSS Validator](https://validator.w3.org/nu/)):
+
+| Page / File | Validator | Errors | Warnings | Result |
+| :--- | :--- | :---: | :---: | :---: |
+| `Calculator (/)` | W3C Nu HTML5 | 0 | 0 | **Pass** |
+| `Catalogue (/catalogue/)` | W3C Nu HTML5 | 0 | 0 | **Pass** |
+| `Edit Print (/edit/<pk>/)` | W3C Nu HTML5 | 0 | 0 | **Pass** |
+| `Login (/login/)` | W3C Nu HTML5 | 0 | 0 | **Pass** |
+| `Sign Up (/signup/)` | W3C Nu HTML5 | 0 | 0 | **Pass** |
+| `static/css/style.css` | W3C CSS3 | 0 | 0 | **Pass** |
+
+* **Google Lighthouse Audits** (Chromium, Oct 16, 2026):
 
 | Device View | Performance | Accessibility | Best Practices | SEO | Full Report |
 | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -203,21 +224,20 @@ Tested via Chrome DevTools Lighthouse (Chromium, Oct 16, 2026):
 
 *Note: Initial accessibility check noted low-contrast text on muted descriptive notes; resolved by darkening secondary text classes to `#495057` to satisfy WCAG AA 4.5:1 ratio requirements.*
 
-### Code Style (PEP 8)
-Enforced using `flake8` with a `.flake8` configuration excluding virtual environments and migrations:
-```text
-$ flake8
-(No output — 100% compliant)
-```
-
 ---
 
 ## 9. Bugs & Resolved Issues
 
 1. **Floating Point Rounding Inaccuracies**:
    * *Issue*: Standard Python `float` operations introduced fractional rounding discrepancies during currency calculations.
-   * *Fix*: Re-architected `SavedPrint.save()` to utilize Python's `decimal.Decimal` module with explicit `ROUND_HALF_UP` quantization.
-2. **Model String Representation Whitespace**:
+   * *Fix*: Re-architected `SavedPrint.calculate_pricing()` to utilize Python's `decimal.Decimal` module with explicit `ROUND_HALF_UP` quantization for both guest and authenticated calculations.
+2. **Catalogue Retail Price Template Attribute Mismatch**:
+   * *Issue*: `catalogue.html` initially referenced `{{ item.retail_price }}` instead of the model field `{{ item.recommended_retail_price }}`, causing blank retail prices on saved cards.
+   * *Fix*: Updated template binding to `{{ item.recommended_retail_price }}`.
+3. **W3C Nu HTML Validator Errors (Inline SVG Favicon & Modal ARIA Role)**:
+   * *Issue*: W3C validation flagged unencoded `<` and `>` characters inside the `data:image/svg+xml` favicon href in `base.html`, as well as `aria-labelledby` on the delete modal `<div>` in `catalogue.html` lacking an explicit `role="dialog"`.
+   * *Fix*: URL-encoded the SVG data URI (`%3C`, `%3E`, `%20`) in `base.html`, added `role="dialog"` to the modal container in `catalogue.html`, and flattened `<section>`/`<article>` card wrappers so `<h1>` remains the top-level heading of `<main>`.
+4. **Model String Representation Whitespace**:
    * *Issue*: `PrinterMachine.__str__` produced an unexpected leading space when machines were instantiated without an explicit brand.
    * *Fix*: Added conditional string formatting checking for brand existence before prepending.
 
@@ -225,15 +245,18 @@ $ flake8
 
 ## 10. Technologies Used
 
-* **Python 3.13 / Django 6.1**: Backend MVC framework and core ORM.
-* **Bootstrap 5.3**: Responsive UI styling, card layouts, and modal overlays.
+* **Python 3.13 / Django 6.1**: Backend MVT framework, authentication, signals, and ORM.
+* **Bootstrap 5.3**: Responsive UI styling, card layouts, and accessible modal overlays.
 * **HTML5 / CSS3**: Semantic markup and custom stylesheet (`static/css/style.css`).
-* **SQLite**: Local relational database.
+* **SQLite / PostgreSQL (`dj-database-url` & `psycopg2-binary`)**: Local development database and production cloud relational database support.
+* **Gunicorn & WhiteNoise**: Production WSGI HTTP server and static file serving.
 * **Flake8**: Strict PEP 8 linting enforcement.
 
 ---
 
-## 11. Local Development & Setup
+## 11. Local Development & Cloud Deployment (LO6)
+
+### Local Development Setup
 
 1. **Clone the repository:**
    ```bash
@@ -241,10 +264,10 @@ $ flake8
    cd 3d-print-profit-calculator
    ```
 
-2. **Create and activate virtual environment:**
+2. **Create and activate a virtual environment:**
    ```bash
    python -m venv .venv
-   source .venv/Scripts/activate  # On Windows (Git Bash)
+   source .venv/Scripts/activate  # Windows Git Bash (or .\.venv\Scripts\Activate.ps1 in PowerShell)
    ```
 
 3. **Install dependencies:**
@@ -252,34 +275,69 @@ $ flake8
    pip install -r requirements.txt
    ```
 
-4. **Apply database migrations:**
+4. **Configure local environment variables (`env.py`):**
+   Create an `env.py` file in the root directory (excluded from Git via `.gitignore`):
+   ```python
+   import os
+
+   os.environ["SECRET_KEY"] = "your-local-secret-key"
+   os.environ["DEBUG"] = "True"
+   ```
+
+5. **Apply database migrations (automatically seeds default 3D printers):**
    ```bash
    python manage.py migrate
    ```
 
-5. **Execute automated tests:**
+6. **Execute automated unit tests & linter:**
    ```bash
    python manage.py test
+   flake8
    ```
 
-6. **Start local development server:**
+7. **Start the local development server:**
    ```bash
    python manage.py runserver
    ```
    Open `http://127.0.0.1:8000/` in your browser.
 
+### Cloud Deployment Procedure (Heroku)
+
+The project is pre-configured for Heroku deployment with `Procfile`, `gunicorn`, `whitenoise`, `dj-database-url`, `psycopg2-binary`, and environment-driven `DEBUG=False` security:
+
+1. **Create Heroku Application**:
+   * Log in to the Heroku Dashboard and click **New → Create new app**.
+   * Enter a unique app name and select your region.
+2. **Configure Environment Variables (Config Vars)**:
+   * Navigate to the **Settings** tab and click **Reveal Config Vars**.
+   * Add the following keys:
+     * `SECRET_KEY`: A strong, randomly generated production secret key.
+     * `DATABASE_URL`: Your production PostgreSQL connection URI (e.g., from Code Institute Postgres / Neon / ElephantSQL).
+     * *(Ensure `DEBUG` is omitted or set to `False` in production).*
+3. **Connect GitHub Repository & Deploy**:
+   * Open the **Deploy** tab and select **GitHub** as the deployment method.
+   * Connect the `paulybruv/3d-print-profit-calculator` repository.
+   * Scroll to **Manual deploy**, select the `main` branch, and click **Deploy Branch** (Heroku automatically runs `collectstatic` via WhiteNoise and starts `web: gunicorn config.wsgi` from `Procfile`).
+4. **Run Production Database Migrations**:
+   * Click **More → Run console** in the top-right of the Heroku dashboard and execute:
+     ```bash
+     python manage.py migrate
+     ```
+   * Migration `0002` automatically seeds the default `PrinterMachine` hardware profiles (`Bambu Lab P1S / X1C`, `Bambu Lab A1 / A1 Mini`, `Prusa MK4`, `Creality Ender 3 V3 SE`) so the calculator works immediately.
+   * Optionally create an admin superuser via `python manage.py createsuperuser` to manage printers at `/admin/`.
+
 ---
 
-## 12. Future Roadmap & Planned Deployment
+## 12. Future Roadmap
 
-* **Heroku Deployment**: Finalize `Procfile` and production PostgreSQL environment variables on Heroku prior to submission.
-* **Code Validation**: Run formal W3C HTML and W3C CSS validator checks alongside the completed Google Lighthouse audits.
-* **CSV / PDF Export**: Allow makers to export their saved print catalogue for bookkeeping and tax reporting.
+* **Multi-Spool / AMS Support**: Support multi-color prints with purge/poop waste weight multipliers.
+* **CSV / PDF Catalogue Export**: Allow makers to export their saved print catalogue for bookkeeping and tax reporting.
+* **Batch Print Estimator**: Calculate per-unit savings when filling an entire build plate with multiple copies.
 
 ---
 
 ## 13. Credits & Acknowledgements
 
-* **Django Documentation**: For standard authentication route guidance.
+* **Django Documentation**: For standard authentication, signal receivers, and `Decimal` model validation patterns.
 * **Bootstrap Team**: For modern CSS component architecture and responsive grid system.
 * **Code Institute**: For assessment rubric guidelines and full-stack development best practices.
