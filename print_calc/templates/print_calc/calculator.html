@@ -6,15 +6,42 @@
 {% block content %}
 <div class="container my-4">
     <div class="row g-4">
-        <!-- Form Column -->
+        <!-- Left Column: Minimalist "Drop & Done" Form -->
         <div class="col-12 col-lg-7">
             <div class="card shadow-sm border-0">
-                <header class="card-header bg-dark text-white py-3">
+                <header class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h1 id="calc-page-title" class="h4 mb-0 text-white">⚙️ 3D Print Cost Calculator</h1>
+                    <span class="badge bg-secondary">Drop &amp; Done</span>
                 </header>
                 <div class="card-body p-4">
+
+                    <!-- 1. UPLOAD FILE (OPTIONAL DRAG & DROP BOX) -->
+                    <div class="mb-4" id="slicer-dropzone-wrapper">
+                        <label for="slicer-file-input" class="slicer-dropzone d-block p-4 rounded text-center cursor-pointer mb-0" id="slicer-dropzone">
+                            <span class="slicer-dropzone-icon d-inline-flex align-items-center justify-content-center rounded-circle mb-2" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                                    <path fill-rule="evenodd" d="M7.646 5.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708z"/>
+                                    <path d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383m.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z"/>
+                                </svg>
+                            </span>
+                            <span class="d-block fw-bold text-dark mb-1">
+                                Drag &amp; drop your <code>.gcode</code> or <code>.3mf</code> file here, or click to browse
+                            </span>
+                            <span class="d-block text-secondary small">
+                                Automatically detects your printer model, print time, filament weight, purge waste, and multi-color spools.
+                            </span>
+                            <input type="file" id="slicer-file-input" class="visually-hidden" accept=".gcode,.3mf,.gco">
+                        </label>
+                        <div id="slicer-parse-toast" class="alert alert-success mt-2 mb-0 py-2 px-3 small d-none text-start" role="status" aria-live="polite">
+                            <strong id="slicer-toast-title">✅ Auto-Filled from File:</strong>
+                            <span id="slicer-toast-body"></span>
+                        </div>
+                    </div>
+
                     <form method="post" novalidate id="calculator-form">
                         {% csrf_token %}
+                        {{ form.spools_json }}
+                        {{ form.hardware_json }}
 
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger" role="alert">
@@ -24,150 +51,147 @@
                             </div>
                         {% endif %}
 
-                        <!-- Item Name -->
+                        <!-- Project Name -->
                         <div class="mb-3">
                             <label for="{{ form.item_name.id_for_label }}" class="form-label fw-bold">
                                 {{ form.item_name.label }}
                             </label>
                             {{ form.item_name }}
-                            {% if form.item_name.help_text %}
-                                <div id="{{ form.item_name.auto_id }}_helptext" class="form-text text-secondary small">{{ form.item_name.help_text }}</div>
-                            {% endif %}
                             {% for error in form.item_name.errors %}
                                 <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
                             {% endfor %}
                         </div>
 
-                        <!-- Printer Selection & Auto-Populated Editable Hardware Specs -->
-                        <div class="mb-3 p-3 rounded border bg-light">
-                            <div class="mb-2">
+                        <!-- 2 & 3. PRINTER MODEL & PRINT TIME (HOURS) -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-12 col-sm-7">
                                 <label for="{{ form.printer.id_for_label }}" class="form-label fw-bold">
-                                    {{ form.printer.label }}
+                                    Printer Model
                                 </label>
                                 {{ form.printer }}
-                                <div id="{{ form.printer.auto_id }}_helptext" class="form-text text-secondary small mt-1">
-                                    Select a printer above to auto-fill power draw and hourly wear, or enter custom values below.
+                                <div id="{{ form.printer.auto_id }}_helptext" class="form-text text-secondary small">
+                                    Auto-sets power draw &amp; machine wear.
                                 </div>
                                 {% for error in form.printer.errors %}
                                     <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
                                 {% endfor %}
                             </div>
 
-                            <div class="row g-3 mt-1">
-                                <div class="col-12 col-sm-6">
-                                    <label for="{{ form.machine_watts.id_for_label }}" class="form-label fw-bold small mb-1">
-                                        {{ form.machine_watts.label }}
+                            <div class="col-12 col-sm-5">
+                                <label for="{{ form.print_time_hours.id_for_label }}" class="form-label fw-bold">
+                                    Print Time (Hours)
+                                </label>
+                                <div class="input-group">
+                                    {{ form.print_time_hours }}
+                                    <span class="input-group-text">hrs</span>
+                                </div>
+                                <div id="{{ form.print_time_hours.auto_id }}_helptext" class="form-text text-secondary small">
+                                    {{ form.print_time_hours.help_text }}
+                                </div>
+                                {% for error in form.print_time_hours.errors %}
+                                    <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- 4. FILAMENT WEIGHT, PURGE / WASTE & SPOOL COST (£/KG) -->
+                        <div class="mb-3 p-3 rounded border bg-light">
+                            <div class="row g-3">
+                                <div class="col-12 col-sm-4">
+                                    <label for="{{ form.filament_grams_used.id_for_label }}" class="form-label fw-bold">
+                                        Filament Weight (Grams)
                                     </label>
-                                    <div class="input-group input-group-sm">
-                                        {{ form.machine_watts }}
-                                        <span class="input-group-text">W</span>
+                                    <div class="input-group">
+                                        {{ form.filament_grams_used }}
+                                        <span class="input-group-text">g</span>
                                     </div>
-                                    <div id="{{ form.machine_watts.auto_id }}_helptext" class="form-text text-secondary small">{{ form.machine_watts.help_text }}</div>
-                                    {% for error in form.machine_watts.errors %}
+                                    <div id="{{ form.filament_grams_used.auto_id }}_helptext" class="form-text text-secondary small">
+                                        {{ form.filament_grams_used.help_text }}
+                                    </div>
+                                    {% for error in form.filament_grams_used.errors %}
                                         <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
                                     {% endfor %}
                                 </div>
 
-                                <div class="col-12 col-sm-6">
-                                    <label for="{{ form.hourly_depreciation.id_for_label }}" class="form-label fw-bold small mb-1">
-                                        {{ form.hourly_depreciation.label }}
+                                <div class="col-12 col-sm-4">
+                                    <label for="{{ form.purge_grams.id_for_label }}" class="form-label fw-bold">
+                                        Purge / Waste (Grams)
                                     </label>
-                                    <div class="input-group input-group-sm">
+                                    <div class="input-group">
+                                        {{ form.purge_grams }}
+                                        <span class="input-group-text">g</span>
+                                    </div>
+                                    <div id="{{ form.purge_grams.auto_id }}_helptext" class="form-text text-secondary small">
+                                        {{ form.purge_grams.help_text }}
+                                    </div>
+                                    <div class="mt-1">
+                                        <span id="material-waste-badge" class="badge bg-secondary">
+                                            Material Waste: 0.0% (0.0g purged)
+                                        </span>
+                                    </div>
+                                    {% for error in form.purge_grams.errors %}
+                                        <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="col-12 col-sm-4">
+                                    <label for="{{ form.spool_price_per_kg.id_for_label }}" class="form-label fw-bold">
+                                        Spool Cost (<span class="currency-symbol">£</span>/kg)
+                                    </label>
+                                    <div class="input-group">
                                         <span class="input-group-text currency-symbol">£</span>
-                                        {{ form.hourly_depreciation }}
-                                        <span class="input-group-text">/hr</span>
+                                        {{ form.spool_price_per_kg }}
+                                        <span class="input-group-text">/kg</span>
                                     </div>
-                                    <div id="{{ form.hourly_depreciation.auto_id }}_helptext" class="form-text text-secondary small">{{ form.hourly_depreciation.help_text }}</div>
-                                    {% for error in form.hourly_depreciation.errors %}
+                                    <div id="{{ form.spool_price_per_kg.auto_id }}_helptext" class="form-text text-secondary small">
+                                        {{ form.spool_price_per_kg.help_text }}
+                                    </div>
+                                    {% for error in form.spool_price_per_kg.errors %}
                                         <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
                                     {% endfor %}
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Filament, Spool Price, Grams, Duration -->
-                        {% for field in form %}
-                            {% if field.name not in 'item_name,printer,machine_watts,hourly_depreciation,electricity_rate_kwh,markup_percentage' %}
-                                <div class="mb-3">
-                                    <label for="{{ field.id_for_label }}" class="form-label fw-bold">
-                                        {{ field.label }}
-                                    </label>
-                                    {% if field.name == 'spool_price_per_kg' %}
-                                        <div class="input-group">
-                                            <span class="input-group-text currency-symbol">£</span>
-                                            {{ field }}
-                                            <span class="input-group-text">/kg</span>
-                                        </div>
-                                    {% else %}
-                                        {{ field }}
-                                    {% endif %}
-                                    {% if field.help_text %}
-                                        <div id="{{ field.auto_id }}_helptext" class="form-text text-secondary small">{{ field.help_text }}</div>
-                                    {% endif %}
-                                    {% for error in field.errors %}
-                                        <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
-                                    {% endfor %}
+                            <!-- Multi-Color Spools Drawer (Auto-opens ONLY when file uses multiple spools, or via Advanced toggle) -->
+                            <div id="ams-spool-manager" class="mt-3 pt-3 border-top d-none">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+                                    <span class="fw-bold small">🎨 Multi-Color Spools Detected (<span id="spool-count-badge">1</span> / 16)</span>
+                                    <button type="button" id="add-spool-btn" class="btn btn-sm btn-outline-secondary">
+                                        + Add Spool
+                                    </button>
                                 </div>
-                            {% endif %}
-                        {% endfor %}
+                                <div id="spool-rows-container" class="d-flex flex-column gap-2 mb-3"></div>
 
-                        <!-- Electricity Cost per kWh & Regional Presets -->
-                        <div class="mb-3 p-3 rounded border bg-white">
-                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-                                <label for="{{ form.electricity_rate_kwh.id_for_label }}" class="form-label fw-bold mb-0">
-                                    ⚡ {{ form.electricity_rate_kwh.label }}
-                                </label>
-                                <span class="badge bg-secondary">Regional Tariffs</span>
+                                <div class="row g-2 align-items-center bg-white p-2 rounded border">
+                                    <div class="col-12 col-sm-6">
+                                        <label for="waste-spool-select" class="form-label fw-bold small mb-0">
+                                            Purge Waste Cost Rate
+                                        </label>
+                                    </div>
+                                    <div class="col-12 col-sm-6">
+                                        <select id="waste-spool-select" class="form-select form-select-sm">
+                                            <option value="avg">Average of Active Spools</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-
-                            <div class="d-flex flex-wrap gap-2 mb-2" role="group" aria-label="Regional electricity cost presets">
-                                <button type="button" class="btn btn-sm btn-primary preset-pill" data-rate-preset="0.263" data-currency="£" aria-pressed="true">
-                                    UK Ofgem Cap (~26.3p / £0.263)
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-rate-preset="0.185" data-currency="$" aria-pressed="false">
-                                    US National Avg (~18.5¢ / $0.185)
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-rate-preset="0.28" data-currency="€" aria-pressed="false">
-                                    EU Average (~€0.28)
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-rate-preset="custom" aria-pressed="false">
-                                    Custom
-                                </button>
-                            </div>
-
-                            <div class="input-group">
-                                <span class="input-group-text fw-bold currency-symbol">£</span>
-                                {{ form.electricity_rate_kwh }}
-                                <span class="input-group-text">/kWh</span>
-                            </div>
-
-                            <div id="{{ form.electricity_rate_kwh.auto_id }}_helptext" class="form-text text-secondary small mt-2">
-                                💡 <strong>Tip:</strong> Most standard printers pull between 80W–150W. A 10-hour print on typical UK/US domestic power costs roughly 25p–40p / $0.20–$0.35.
-                            </div>
-
-                            {% for error in form.electricity_rate_kwh.errors %}
-                                <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
-                            {% endfor %}
                         </div>
 
-                        <!-- Markup Percentage & Industry Presets -->
+                        <!-- 5. MARKUP (%) WITH QUICK PRESET BUTTONS -->
                         <div class="mb-3 p-3 rounded border bg-white">
-                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-                                <label for="{{ form.markup_percentage.id_for_label }}" class="form-label fw-bold mb-0">
-                                    {{ form.markup_percentage.label }}
-                                </label>
-                                <span class="badge bg-secondary">Industry Presets</span>
-                            </div>
+                            <label for="{{ form.markup_percentage.id_for_label }}" class="form-label fw-bold mb-2">
+                                Markup (%)
+                            </label>
 
                             <div class="d-flex flex-wrap gap-2 mb-2" role="group" aria-label="Markup percentage presets">
                                 <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-markup-preset="40" aria-pressed="false">
-                                    Wholesale / Bulk (40%)
+                                    Wholesale (40%)
                                 </button>
                                 <button type="button" class="btn btn-sm btn-primary preset-pill" data-markup-preset="100" aria-pressed="true">
-                                    Retail / DTC (100%)
+                                    Retail (100%)
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-markup-preset="200" aria-pressed="false">
-                                    Prototyping / Custom (200%)
+                                    Custom / Prototyping (200%)
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-markup-preset="custom" aria-pressed="false">
                                     Custom
@@ -188,10 +212,259 @@
                             {% endfor %}
                         </div>
 
+                        <!-- ========================================================= -->
+                        <!-- SINGLE COLLAPSED ACCORDION: ⚙️ ADVANCED OPTIONS (OPTIONAL)-->
+                        <!-- ========================================================= -->
+                        <div class="accordion mb-3" id="advancedOptionsAccordion">
+                            <div class="accordion-item border rounded">
+                                <h2 class="accordion-header" id="headingAdvancedOptions">
+                                    <button class="accordion-button collapsed py-2 px-3 fw-bold bg-light text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvancedOptions" aria-expanded="false" aria-controls="collapseAdvancedOptions">
+                                        ⚙️ Advanced Options (Optional)
+                                    </button>
+                                </h2>
+                                <div id="collapseAdvancedOptions" class="accordion-collapse collapse" aria-labelledby="headingAdvancedOptions" data-bs-parent="#advancedOptionsAccordion">
+                                    <div class="accordion-body p-3 bg-white">
+
+                                        <!-- A. Batch / Multiple Items on Plate & Filament Type -->
+                                        <div class="mb-3 pb-3 border-bottom">
+                                            <h3 class="h6 fw-bold mb-2">📦 Batch Quantity &amp; Material Type</h3>
+                                            <div class="row g-3">
+                                                <div class="col-12 col-sm-6">
+                                                    <label for="{{ form.plate_quantity.id_for_label }}" class="form-label fw-bold small mb-1">
+                                                        Batch / Multiple Items on Plate
+                                                    </label>
+                                                    <div class="input-group input-group-sm">
+                                                        {{ form.plate_quantity }}
+                                                        <span class="input-group-text">items</span>
+                                                    </div>
+                                                    <div id="{{ form.plate_quantity.auto_id }}_helptext" class="form-text text-secondary small">
+                                                        {{ form.plate_quantity.help_text }}
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12 col-sm-6">
+                                                    <label for="{{ form.filament_type.id_for_label }}" class="form-label fw-bold small mb-1">
+                                                        Filament Material Type
+                                                    </label>
+                                                    {{ form.filament_type }}
+                                                </div>
+                                            </div>
+
+                                            <div id="batch-distribution-note" class="alert alert-warning py-2 px-3 small mt-2 mb-0 d-none" role="status" aria-live="polite">
+                                                📦 <strong>Batch Mode Active:</strong> Plate costs and prep time are divided equally across all <strong id="batch-note-count">2</strong> items.
+                                            </div>
+
+                                            <div class="form-check form-switch mt-2">
+                                                {{ form.is_multicolor_run }}
+                                                <label class="form-check-label fw-bold small" for="{{ form.is_multicolor_run.id_for_label }}">
+                                                    {{ form.is_multicolor_run.label }} (1 to 16 spools)
+                                                </label>
+                                            </div>
+                                            <div id="{{ form.is_multicolor_run.auto_id }}_helptext" class="visually-hidden">
+                                                {{ form.is_multicolor_run.help_text }}
+                                            </div>
+                                        </div>
+
+                                        <!-- B. Setup & Cleanup Labor Times -->
+                                        <div class="mb-3 pb-3 border-bottom">
+                                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+                                                <div class="form-check form-switch mb-0">
+                                                    <input class="form-check-input" type="checkbox" role="switch" id="include-labor-toggle">
+                                                    <label class="form-check-label fw-bold small" for="include-labor-toggle">
+                                                        ⏱️ Include Setup &amp; Cleanup Labor Times
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div id="labor-drawer" class="mt-2 d-none">
+                                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                                    <div class="btn-group btn-group-sm" role="group" aria-label="Labor entry mode">
+                                                        <button type="button" class="btn btn-primary" id="labor-mode-time-btn" aria-pressed="true">
+                                                            Minutes (@ Hourly Rate)
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-secondary" id="labor-mode-flat-btn" aria-pressed="false">
+                                                            Direct Amount (<span class="currency-symbol">£</span>)
+                                                        </button>
+                                                    </div>
+                                                    <div id="hourly-rate-wrapper" class="d-flex align-items-center gap-1">
+                                                        <label for="labor-hourly-rate" class="form-label small fw-bold mb-0">Rate:</label>
+                                                        <div class="input-group input-group-sm" style="width: 115px;">
+                                                            <span class="input-group-text currency-symbol">£</span>
+                                                            <input type="number" id="labor-hourly-rate" class="form-control" value="15.00" min="1" step="0.50">
+                                                            <span class="input-group-text">/hr</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div id="labor-time-inputs" class="row g-3">
+                                                    <div class="col-12 col-sm-6">
+                                                        <label for="prep-minutes-input" class="form-label fw-bold small mb-1">
+                                                            Slicing &amp; Bed Prep Time
+                                                        </label>
+                                                        <div class="input-group input-group-sm">
+                                                            <input type="number" id="prep-minutes-input" class="form-control" value="0" min="0" step="1">
+                                                            <span class="input-group-text">mins</span>
+                                                            <span class="input-group-text" id="prep-calc-preview">= £0.00</span>
+                                                        </div>
+                                                        <div class="form-text text-secondary small">
+                                                            One-off time spent slicing, loading filament, or cleaning the bed. Divided equally across all items on the plate.
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12 col-sm-6">
+                                                        <label for="cleanup-minutes-input" class="form-label fw-bold small mb-1">
+                                                            Cleanup &amp; Packing Time per Item
+                                                        </label>
+                                                        <div class="input-group input-group-sm">
+                                                            <input type="number" id="cleanup-minutes-input" class="form-control" value="0" min="0" step="1">
+                                                            <span class="input-group-text">mins</span>
+                                                            <span class="input-group-text" id="cleanup-calc-preview">= £0.00</span>
+                                                        </div>
+                                                        <div class="form-text text-secondary small">
+                                                            Time spent removing supports, assembling parts, and packing each individual piece.
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div id="labor-flat-inputs" class="row g-3 d-none">
+                                                    <div class="col-12 col-sm-6">
+                                                        <label for="{{ form.flat_setup_cost.id_for_label }}" class="form-label fw-bold small mb-1">
+                                                            Slicing &amp; Bed Prep (Direct Cost)
+                                                        </label>
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text currency-symbol">£</span>
+                                                            {{ form.flat_setup_cost }}
+                                                            <span class="input-group-text">/plate</span>
+                                                        </div>
+                                                        <div id="{{ form.flat_setup_cost.auto_id }}_helptext" class="form-text text-secondary small">
+                                                            {{ form.flat_setup_cost.help_text }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12 col-sm-6">
+                                                        <label for="{{ form.per_unit_post_cost.id_for_label }}" class="form-label fw-bold small mb-1">
+                                                            Cleanup &amp; Packing (Direct Cost)
+                                                        </label>
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text currency-symbol">£</span>
+                                                            {{ form.per_unit_post_cost }}
+                                                            <span class="input-group-text">/item</span>
+                                                        </div>
+                                                        <div id="{{ form.per_unit_post_cost.auto_id }}_helptext" class="form-text text-secondary small">
+                                                            {{ form.per_unit_post_cost.help_text }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- C. Extra Hardware / Magnets / Inserts Add-ons -->
+                                        <div class="mb-3 pb-3 border-bottom">
+                                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+                                                <h3 class="h6 fw-bold mb-0">🔩 Extra Hardware, Magnets &amp; Inserts</h3>
+                                                <button type="button" id="add-hardware-btn" class="btn btn-sm btn-outline-secondary">
+                                                    + Add Hardware
+                                                </button>
+                                            </div>
+                                            <div id="hardware-rows-container" class="d-flex flex-column gap-2"></div>
+                                        </div>
+
+                                        <!-- D. Exact Electricity Rate, Machine Wattage & Wear Overrides -->
+                                        <div>
+                                            <h3 class="h6 fw-bold mb-2">⚡ Electricity Rate &amp; Hardware Overrides</h3>
+                                            <div class="d-flex flex-wrap gap-2 mb-2" role="group" aria-label="Regional electricity cost presets">
+                                                <button type="button" class="btn btn-sm btn-primary preset-pill" data-rate-preset="0.263" data-currency="£" aria-pressed="true">
+                                                    UK (~£0.263/kWh)
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-rate-preset="0.185" data-currency="$" aria-pressed="false">
+                                                    US (~$0.185/kWh)
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-rate-preset="0.28" data-currency="€" aria-pressed="false">
+                                                    EU (~€0.28/kWh)
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-rate-preset="custom" aria-pressed="false">
+                                                    Custom
+                                                </button>
+                                            </div>
+
+                                            <div class="row g-3">
+                                                <div class="col-12 col-sm-4">
+                                                    <label for="{{ form.electricity_rate_kwh.id_for_label }}" class="form-label fw-bold small mb-1">
+                                                        Electricity Rate
+                                                    </label>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text currency-symbol">£</span>
+                                                        {{ form.electricity_rate_kwh }}
+                                                        <span class="input-group-text">/kWh</span>
+                                                    </div>
+                                                    <div id="{{ form.electricity_rate_kwh.auto_id }}_helptext" class="form-text text-secondary small">
+                                                        {{ form.electricity_rate_kwh.help_text }}
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12 col-sm-4">
+                                                    <label for="{{ form.machine_watts.id_for_label }}" class="form-label fw-bold small mb-1">
+                                                        Machine Wattage
+                                                    </label>
+                                                    <div class="input-group input-group-sm">
+                                                        {{ form.machine_watts }}
+                                                        <span class="input-group-text">W</span>
+                                                    </div>
+                                                    <div id="{{ form.machine_watts.auto_id }}_helptext" class="form-text text-secondary small">
+                                                        {{ form.machine_watts.help_text }}
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12 col-sm-4">
+                                                    <label for="{{ form.hourly_depreciation.id_for_label }}" class="form-label fw-bold small mb-1">
+                                                        Hourly Wear
+                                                    </label>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text currency-symbol">£</span>
+                                                        {{ form.hourly_depreciation }}
+                                                        <span class="input-group-text">/hr</span>
+                                                    </div>
+                                                    <div id="{{ form.hourly_depreciation.auto_id }}_helptext" class="form-text text-secondary small">
+                                                        {{ form.hourly_depreciation.help_text }}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Optional Minimum Floor Charge -->
+                                            <div class="row g-2 align-items-center mt-3 pt-2 border-top">
+                                                <div class="col-12 col-sm-7">
+                                                    <div class="form-check form-switch">
+                                                        {{ form.apply_min_floor }}
+                                                        <label class="form-check-label fw-bold small" for="{{ form.apply_min_floor.id_for_label }}">
+                                                            {{ form.apply_min_floor.label }}
+                                                        </label>
+                                                    </div>
+                                                    <div id="{{ form.apply_min_floor.auto_id }}_helptext" class="form-text text-secondary small">
+                                                        {{ form.apply_min_floor.help_text }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-sm-5">
+                                                    <label for="{{ form.min_floor_charge.id_for_label }}" class="form-label fw-bold small mb-1">
+                                                        {{ form.min_floor_charge.label }}
+                                                    </label>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text currency-symbol">£</span>
+                                                        {{ form.min_floor_charge }}
+                                                    </div>
+                                                    <div id="{{ form.min_floor_charge.auto_id }}_helptext" class="form-text text-secondary small">
+                                                        {{ form.min_floor_charge.help_text }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 {% if user.is_authenticated %}
-                                    Calculate & Save to Catalogue
+                                    Calculate &amp; Save to Catalogue
                                 {% else %}
                                     Calculate Cost Estimate
                                 {% endif %}
@@ -202,55 +475,99 @@
             </div>
         </div>
 
-        <!-- Result / Information Column -->
+        <!-- ========================================================= -->
+        <!-- 4. IMMEDIATE RESULT CARD (Material + Machine + Your Profit)-->
+        <!-- ========================================================= -->
         <aside class="col-12 col-lg-5" aria-label="Calculation Results">
-            <article id="calc-result-card" class="card shadow-sm border-0 border-top border-4 border-success {% if not calculated_result %}d-none{% endif %}">
-                <header class="card-header bg-light py-3">
+            <article id="calc-result-card" class="card shadow-sm border-0 border-top border-4 border-success sticky-lg-top {% if not calculated_result %}d-none{% endif %}">
+                <header class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
                     <h2 class="h5 mb-0 fw-bold">
-                        📊 Estimate for <span id="live-item-name">{{ calculated_result.item_name|default:"Current Print" }}</span>
+                        📊 <span id="live-item-name">{{ calculated_result.item_name|default:"Current Print" }}</span>
                     </h2>
+                    <span id="live-batch-badge" class="badge bg-secondary">
+                        Batch of {{ calculated_result.plate_quantity|default:"1" }}
+                    </span>
                 </header>
-                <div class="card-body">
+                <div class="card-body p-4">
+
+                    <!-- Large Bold Suggested Selling Price Hero -->
+                    <div class="text-center p-3 rounded border bg-light mb-3">
+                        <span class="d-block fw-bold text-uppercase small text-secondary mb-1" id="live-plate-heading">
+                            Suggested Selling Price
+                        </span>
+                        <div class="display-5 fw-bold text-success mb-1" id="live-retail-price">
+                            £{{ calculated_result.retail_price|default:"0.00" }}
+                        </div>
+                        <small id="live-margin-summary" class="text-secondary d-block">
+                            {{ calculated_result.markup_percentage|default:"100" }}% Markup · {{ calculated_result.gross_margin_pct|default:"50.0" }}% Gross Margin
+                        </small>
+                        <span id="live-floor-badge" class="badge bg-secondary mt-2 d-none">Minimum Floor Applied</span>
+                    </div>
+
+                    <!-- Simple 3-Pillar Equation: Material Cost + Machine Cost + Your Profit -->
                     <ul class="list-group list-group-flush mb-3">
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
-                            <span>Material (Filament) Cost:</span>
-                            <span id="live-filament-cost">£{{ calculated_result.filament_cost|default:"0.00" }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
-                            <span>Electricity Overhead:</span>
-                            <span id="live-electricity-cost">£{{ calculated_result.electricity_cost|default:"0.00" }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
-                            <span>Machine Wear / Depreciation:</span>
-                            <span id="live-depreciation-cost">£{{ calculated_result.depreciation_cost|default:"0.00" }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
-                            <span>Failure Risk Buffer:</span>
-                            <span id="live-buffer-pct">+{{ calculated_result.failure_buffer_pct|default:"5" }}%</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                            <span>Total Production Cost:</span>
-                            <strong id="live-total-cost">£{{ calculated_result.total_cost|default:"0.00" }}</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0">
                             <div>
-                                <span class="d-block">Target Selling Price:</span>
-                                <small id="live-margin-summary" class="text-secondary">
-                                    {{ calculated_result.markup_percentage|default:"100" }}% Markup / {{ calculated_result.gross_margin_pct|default:"50.0" }}% Gross Margin
-                                </small>
+                                <span class="fw-bold d-block">🧵 Material Cost</span>
+                                <small class="text-secondary" id="live-material-subnote">Filament used + failure buffer</small>
                             </div>
-                            <strong id="live-retail-price" class="text-success fs-5">£{{ calculated_result.retail_price|default:"0.00" }}</strong>
+                            <strong id="live-filament-cost" class="fs-6">£{{ calculated_result.filament_cost|default:"0.00" }}</strong>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                            <span>Estimated Profit per Item:</span>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0">
+                            <div>
+                                <span class="fw-bold d-block">🖨️ Machine Cost</span>
+                                <small class="text-secondary" id="live-machine-subnote">Electricity + hourly printer wear</small>
+                            </div>
+                            <strong id="live-machine-cost" class="fs-6">£{{ calculated_result.electricity_cost|default:"0.00" }}</strong>
+                        </li>
+
+                        <!-- Optional Extras Row (Shown only if Labor or Hardware > 0) -->
+                        <li id="live-extras-row" class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 d-none">
+                            <div>
+                                <span class="fw-bold d-block">⚙️ Labor &amp; Hardware Add-ons</span>
+                                <small class="text-secondary">Setup, cleanup &amp; fasteners</small>
+                            </div>
+                            <strong id="live-extras-cost" class="fs-6">£0.00</strong>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 bg-white">
+                            <span class="text-secondary small">Total Production Cost:</span>
+                            <strong id="live-total-cost" class="text-dark">£{{ calculated_result.total_cost|default:"0.00" }}</strong>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0">
+                            <div>
+                                <span class="fw-bold d-block text-primary">💰 Your Profit</span>
+                                <small class="text-secondary">Net earnings after all costs</small>
+                            </div>
                             <strong id="live-profit" class="text-primary fs-5">£{{ calculated_result.profit|default:"0.00" }}</strong>
                         </li>
                     </ul>
 
+                    <!-- Per-Unit Breakdown Box (Shown only when Batch > 1) -->
+                    <div id="live-per-unit-box" class="p-3 rounded border bg-light mb-3 {% if not calculated_result or calculated_result.plate_quantity <= 1 %}d-none{% endif %}">
+                        <div class="fw-bold small text-uppercase mb-1">
+                            Per Individual Unit (1 of <span id="live-unit-qty-label">{{ calculated_result.plate_quantity|default:"1" }}</span>)
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small mb-1">
+                            <span>Cost Per Unit:</span>
+                            <strong id="live-unit-cost">£{{ calculated_result.unit_cost|default:"0.00" }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>Suggested Price Per Unit:</span>
+                            <strong id="live-unit-retail" class="text-success fs-5">£{{ calculated_result.unit_retail|default:"0.00" }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small">
+                            <span>Your Profit Per Unit:</span>
+                            <strong id="live-unit-profit" class="text-primary">£{{ calculated_result.unit_profit|default:"0.00" }}</strong>
+                        </div>
+                    </div>
+
                     {% if not user.is_authenticated %}
                         <div class="alert alert-warning mb-0 text-center" role="status">
                             <p class="mb-0 small">
-                                Want to save this and build your catalogue? 
+                                Want to save this to your catalogue? 
                                 <a href="{% url 'login' %}" class="alert-link fw-bold">Log In</a> or 
                                 <a href="{% url 'signup' %}" class="alert-link fw-bold">Sign Up</a>!
                             </p>
@@ -261,9 +578,9 @@
 
             {% if not calculated_result %}
                 <div id="calc-empty-state" class="card shadow-sm border-0 bg-light p-4 text-center">
-                    <h2 class="h5 fw-bold mb-2">Ready to Calculate</h2>
+                    <h2 class="h5 fw-bold mb-2">Drop a File or Enter 3 Numbers</h2>
                     <p class="text-secondary small mb-0">
-                        Select your printer to auto-populate wattage and hourly machine wear, choose your regional electricity tariff, and preview your full production cost and profit margin live.
+                        Drop a <code>.gcode</code> or <code>.3mf</code> file on the left—or pick your printer and enter hours &amp; grams—to see your <strong>Material Cost + Machine Cost + Your Profit</strong> immediately.
                     </p>
                 </div>
             {% endif %}
@@ -272,5 +589,6 @@
 </div>
 
 {{ printer_watts|json_script:"printer-watts-data" }}
-<script src="{% static 'js/calculator.js' %}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" crossorigin="anonymous" defer></script>
+<script src="{% static 'js/calculator.js' %}?v=8" defer></script>
 {% endblock %}

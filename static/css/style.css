@@ -9,6 +9,50 @@
     transform: translateY(-2px);
 }
 
+/* Slicer Drag-and-Drop Upload Zone */
+.slicer-dropzone {
+    background-color: #f8fafc !important;
+    color: #111827 !important;
+    border: 2px dashed #374151 !important;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.slicer-dropzone:hover,
+.slicer-dropzone:focus-within,
+.slicer-dropzone-active {
+    background-color: #e0f2fe !important;
+    border-color: #084298 !important;
+    box-shadow: 0 0 0 0.2rem rgba(8, 66, 152, 0.15);
+}
+
+.slicer-dropzone-icon {
+    width: 3.25rem;
+    height: 3.25rem;
+    background-color: #dbeafe;
+    color: #084298;
+    transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.slicer-dropzone:hover .slicer-dropzone-icon,
+.slicer-dropzone-active .slicer-dropzone-icon {
+    transform: translateY(-2px);
+    background-color: #bfdbfe;
+}
+
+/* Multi-color spool indicator dots */
+.spool-color-dot {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    border: 1px solid rgba(17, 24, 39, 0.35);
+    vertical-align: middle;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
 /* Form Input Styling */
 .card-body form input[type="text"],
 .card-body form input[type="email"],
@@ -33,16 +77,61 @@
 }
 
 /* WAVE & WCAG 2.1 AAA High-Contrast Overrides (>= 9:1 on white & #f8f9fa) */
+body,
+.bg-light,
+.card-header.bg-light,
+.card-footer.bg-light,
+.modal-footer.bg-light {
+    background-color: #f8f9fa !important;
+    color: #111827 !important;
+}
+
+.bg-white,
+.card,
+.card-body,
+.modal-content,
+.modal-body,
+.list-group-item {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+.text-dark {
+    color: #111827 !important;
+}
+
 .text-muted,
 .text-secondary,
 .form-text,
 small.text-secondary,
 .list-group-item.text-secondary {
-    color: #212529 !important;
+    color: #111827 !important;
+}
+
+code {
+    color: #052c65 !important;
+    background-color: #e2e8f0 !important;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    font-weight: 700;
+}
+
+.visually-hidden,
+.visually-hidden-focusable:not(:focus):not(:focus-within) {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+}
+
+.accordion-button,
+.accordion-button.collapsed,
+.accordion-button:not(.collapsed) {
+    background-color: #f1f5f9 !important;
+    color: #111827 !important;
+    box-shadow: none !important;
 }
 
 ::placeholder {
-    color: #343a40 !important;
+    color: #1f2937 !important;
     opacity: 1;
 }
 
@@ -70,16 +159,29 @@ footer.bg-dark p {
     text-decoration: underline;
 }
 
-/* High-contrast badges & buttons (all >= 7:1 contrast ratio) */
+/* High-contrast badges & buttons (all >= 9:1 contrast ratio) */
 .badge.bg-secondary,
 .badge-secondary {
     background-color: #1f2937 !important;
     color: #ffffff !important;
 }
 
-.badge.bg-light {
+.badge.bg-light,
+.badge.bg-light * {
     background-color: #ffffff !important;
     color: #111827 !important;
+}
+
+.bg-success,
+.badge.bg-success {
+    background-color: #0f5132 !important;
+    color: #ffffff !important;
+}
+
+.bg-danger,
+.modal-header.bg-danger {
+    background-color: #842029 !important;
+    color: #ffffff !important;
 }
 
 .btn-primary {
@@ -153,6 +255,15 @@ footer.bg-dark p {
     color: #ffffff !important;
 }
 
+.btn:disabled,
+button:disabled,
+.btn.disabled {
+    opacity: 1 !important;
+    color: #374151 !important;
+    background-color: #f3f4f6 !important;
+    border-color: #6b7280 !important;
+}
+
 .text-success {
     color: #0f5132 !important;
 }
@@ -175,6 +286,24 @@ footer.bg-dark p {
     color: #052c65 !important;
 }
 
+.alert-success {
+    background-color: #d1e7dd !important;
+    color: #0a3622 !important;
+    border-color: #a3cfbb !important;
+}
+
+.alert-info {
+    background-color: #cff4fc !important;
+    color: #052c65 !important;
+    border-color: #9eeaf9 !important;
+}
+
+.alert-danger {
+    background-color: #f8d7da !important;
+    color: #58151c !important;
+    border-color: #f1aeb5 !important;
+}
+
 .input-group-text {
     color: #111827 !important;
     background-color: #e9ecef !important;
@@ -190,7 +319,7 @@ footer.bg-dark p {
 }
 
 .markup-helper-box {
-    background-color: #f1f5f9;
+    background-color: #f1f5f9 !important;
     border-left: 4px solid #084298 !important;
     color: #111827 !important;
 }

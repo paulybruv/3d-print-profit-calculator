@@ -113,6 +113,15 @@ The application relies on two relational models in `print_calc/models.py`:
     | depreciation_per_hour: Decimal(5,2)   |         | filament_type: CharField(20)          |
     | cost_basis_note: CharField(150)       |         | spool_price_per_kg: Decimal(6,2)      |
     +---------------------------------------+         | filament_grams_used: PositiveInt      |
+                                                      | purge_grams: Decimal(6,1)             |
+                                                      | is_multicolor_run: BooleanField       |
+                                                      | spools_json: TextField (JSON)         |
+                                                      | plate_quantity: PositiveIntegerField  |
+                                                      | flat_setup_cost: Decimal(6,2)         |
+                                                      | per_unit_post_cost: Decimal(6,2)      |
+                                                      | hardware_json: TextField (JSON)       |
+                                                      | apply_min_floor: BooleanField         |
+                                                      | min_floor_charge: Decimal(6,2)        |
                                                       | print_time_hours: Decimal(5,2)        |
                                                       | electricity_rate_kwh: Decimal(6,3)    |
                                                       | markup_percentage: PositiveInt        |
@@ -130,8 +139,10 @@ The application relies on two relational models in `print_calc/models.py`:
 
 All cost calculations are performed within `SavedPrint.calculate_pricing()` (invoked automatically by `SavedPrint.save()` and `calculator_view`) using Python's `decimal.Decimal` module (`ROUND_HALF_UP`), mirrored live on the client in `static/js/calculator.js`:
 
-1. **Filament Cost:**  
-   `Filament Cost = (Spool Price / 1000) * Grams Used`
+1. **Material & Purge Waste Cost:**  
+   `Model Filament Cost = (Spool Price / 1000) * Model Grams` (or summed across up to 16 individual AMS spools)  
+   `Purge Waste Cost = (Purge Rate / 1000) * Purge Grams`  
+   `Material Waste % = (Purge Grams / (Model Grams + Purge Grams)) * 100`
 
 2. **Electricity Cost:**  
    `Electricity Cost = (Machine Watts / 1000) * Print Hours * Cost per kWh`  
@@ -141,27 +152,29 @@ All cost calculations are performed within `SavedPrint.calculate_pricing()` (inv
    `Depreciation Cost = Print Hours * Hourly Depreciation Rate`  
    *(Auto-populates `Hourly Wear / Depreciation` from the selected printer preset—e.g. `£0.06/hr` for A1 Mini up to `£0.45/hr` for Prusa XL 5-Toolhead—while remaining user-editable)*.
 
-4. **Failure Risk Buffer Multiplier:**  
+4. **Failure Risk Buffer & Batch Extras:**  
    - Standard materials (`PLA`, `PETG`): **5% buffer** (multiplier: `1.05`)  
    - High-temp / flexible materials (`ABS`, `TPU`): **15% buffer** (multiplier: `1.15`)  
-   `Total Cost = (Filament Cost + Electricity Cost + Depreciation Cost) * Failure Multiplier`
+   `Print Production Cost = (Filament Cost + Purge Cost + Electricity Cost + Depreciation Cost) * Failure Multiplier`  
+   `Total Plate Cost = Print Production Cost + Flat Setup Labor + (Per-Unit Cleanup Labor * Plate Quantity) + Hardware Add-ons`
 
-5. **Target Selling Price, Profit & Gross Margin:**  
-   `Target Selling Price = Total Cost * (1 + (Markup % / 100))`  
-   `Profit per Item = Target Selling Price - Total Cost`  
-   `Gross Margin % = (Profit per Item / Target Selling Price) * 100`
+5. **Target Selling Price, Minimum Order Floor, Profit & Per-Unit Batch Pricing:**  
+   `Target Selling Price = max(Total Plate Cost * (1 + Markup % / 100), Minimum Floor Charge if enabled)`  
+   `Profit per Plate = Target Selling Price - Total Plate Cost`  
+   `Per-Unit Selling Price = Target Selling Price / Plate Quantity`
 
 ---
 
 ## 7. Features & Defensive Design
 
 ### Implemented Features
-* **Interactive Cost Calculator with Live Breakdown**: Allows instant mathematical projections for guests and one-click saving for authenticated users.
+* **"Drop & Done" `.gcode` and `.3mf` Slicer Auto-Parser**: Modern drag-and-drop dropzone that inspects OrcaSlicer, Bambu Studio, PrusaSlicer, and Cura `.gcode` / `.3mf` files client-side (via `JSZip`) to auto-populate Printer Model, Print Time, Model Weight, Purge/Waste Weight, and Multi-Color AMS spools.
+* **Streamlined Core View + Collapsible Advanced Options**: Keeps the default calculator view uncluttered while providing optional toggles for Batch Plate Quantity, Hands-On Labor (time-based or flat currency), Multi-Color AMS Spool Manager (up to 16 spools), Hardware & Fasteners BOM, and Minimum Order Floor Charge.
 * **23 Individual Printer Hardware Presets**: Brand-grouped `<optgroup>` dropdown (`Bambu Lab`, `Prusa`, `Creality`, `Elegoo`, `Anycubic`, `Resin`, `Custom`) that immediately populates editable **Machine Wattage (W)** and **Hourly Wear / Depreciation (£/hr)** fields.
 * **Regional Electricity Tariff Pills & Currency Sync**: One-click preset buttons (`UK Ofgem Cap £0.263`, `US National Avg $0.185`, `EU Average €0.28`, `Custom`) that sync currency symbols (`£`, `$`, `€`) across the UI.
 * **Industry Markup Presets & Gross Margin Helper**: Quick-select markup buttons (`40%`, `100%`, `200%`, `Custom`) with a live `Markup % = Gross Margin %` educational banner.
 * **Role-Based Authentication Suite**: Standard Django authentication with user registration, login/logout flash notifications, and Django Admin hardware management for staff/superusers.
-* **Catalogue Dashboard**: Responsive grid cards with filament material filtering (`All`, `PLA`, `PETG`, `ABS`, `TPU`), summary metric cards, and timestamp metadata.
+* **"My Catalogue" Saved Prints Workflow**: Responsive cards with live search, filament material filtering, multi-color spool badges with color dots, full cost breakdowns, one-click **Load into Calculator** (`/?load=<id>`), and **Export / Copy Quote** clipboard functionality.
 * **Defensive CRUD & Custom Error Pages**: Update and Delete operations restricted exclusively to the creator of the item, backed by custom branded `404.html` and `500.html` error templates.
 
 ### Defensive Programming Matrix
@@ -179,11 +192,12 @@ All cost calculations are performed within `SavedPrint.calculate_pricing()` (inv
 ## 8. Testing & Quality Assurance (LO4)
 
 ### 4.1 Automated Python Testing (`python manage.py test`)
-Automated unit tests in `print_calc/tests.py` cover models, calculation accuracy, hardware depreciation, form validation, view access control, and full CRUD workflows:
+Automated unit tests in `print_calc/tests.py` cover models, calculation accuracy, hardware depreciation, batch/AMS/hardware/floor pricing, form validation, view access control, and full CRUD workflows:
 * `PrinterMachineModelTests.test_printer_string_representation`: Confirms correct `__str__` formatting.
 * `SavedPrintModelTests.test_pla_failure_multiplier_calculation`: Validates `Decimal` precision formulas, 5% PLA failure buffer, and retail pricing.
 * `SavedPrintModelTests.test_abs_failure_multiplier_calculation`: Validates high-temp wattage selection and 15% ABS failure buffer.
 * `SavedPrintModelTests.test_depreciation_and_custom_watts_calculation`: Validates hourly machine wear/depreciation and custom wattage overrides in `calculate_pricing()`.
+* `SavedPrintModelTests.test_batch_multicolor_hardware_and_floor_pricing`: Validates batch plate division, multi-spool AMS costs, purge waste %, hardware BOM, and minimum order floor charge.
 * `SavedPrintModelTests.test_negative_form_values_rejected`: Verifies `SavedPrintForm` and `MinValueValidator` reject negative numeric inputs.
 * `ViewAccessTests.test_calculator_page_loads_for_anonymous_user`: Verifies public access (HTTP 200).
 * `ViewAccessTests.test_catalogue_redirects_unauthenticated_user`: Verifies unauthenticated redirect (HTTP 302).
@@ -192,10 +206,11 @@ Automated unit tests in `print_calc/tests.py` cover models, calculation accuracy
 * `ViewAccessTests.test_catalogue_filters_by_filament_type`: Verifies `?filament=` query parameter filters catalogue items and summary metrics accurately.
 * `CrudOperationTests.test_edit_print_updates_record`: Validates record update via POST request.
 * `CrudOperationTests.test_delete_print_removes_record_via_post`: Validates record deletion via POST request.
+* `CrudOperationTests.test_load_into_calculator_and_catalogue_summary`: Validates `?load=<id>` pre-population, `get_catalogue_summary()`, spool color dots, quote export text, and accessible dropzone markup.
 
-All 12 automated tests pass with zero errors:
+All 14 automated tests pass with zero errors:
 ```text
-Ran 12 tests in 14.2s
+Ran 14 tests in 16.5s
 OK
 ```
 

@@ -86,7 +86,31 @@ def calculator_view(request):
                     "Calculation complete! Log in or sign up to save items.",
                 )
     else:
-        form = SavedPrintForm()
+        load_id = request.GET.get("load")
+        loaded_item = None
+        if (
+            load_id
+            and request.user.is_authenticated
+            and str(load_id).isdigit()
+        ):
+            loaded_item = SavedPrint.objects.filter(
+                pk=int(load_id), user=request.user
+            ).first()
+
+        if loaded_item:
+            form = SavedPrintForm(instance=loaded_item)
+            breakdown = loaded_item.calculate_pricing()
+            calculated_result = {
+                "item_name": loaded_item.item_name,
+                **breakdown,
+            }
+            messages.info(
+                request,
+                f"Loaded '{loaded_item.item_name}' into the calculator. "
+                f"Tweak any values or save as a new quote!",
+            )
+        else:
+            form = SavedPrintForm()
 
     context = {
         "form": form,
@@ -99,8 +123,10 @@ def calculator_view(request):
 @login_required
 def catalogue_view(request):
     """Displays the authenticated user's saved print items."""
-    saved_prints = SavedPrint.objects.filter(user=request.user).order_by(
-        "-created_on"
+    saved_prints = (
+        SavedPrint.objects.filter(user=request.user)
+        .select_related("printer")
+        .order_by("-created_on")
     )
 
     selected_filament = request.GET.get("filament", "")
@@ -109,6 +135,10 @@ def catalogue_view(request):
         saved_prints = saved_prints.filter(filament_type=selected_filament)
     else:
         selected_filament = ""
+
+    search_query = request.GET.get("q", "").strip()
+    if search_query:
+        saved_prints = saved_prints.filter(item_name__icontains=search_query)
 
     total_items = saved_prints.count()
     avg_profit = 0
@@ -123,6 +153,7 @@ def catalogue_view(request):
         "total_items": total_items,
         "avg_profit": avg_profit,
         "selected_filament": selected_filament,
+        "search_query": search_query,
         "filament_choices": SavedPrint.FILAMENT_CHOICES,
     }
     return render(request, "print_calc/catalogue.html", context)

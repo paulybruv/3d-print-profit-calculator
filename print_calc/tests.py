@@ -148,6 +148,46 @@ class SavedPrintModelTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("spool_price_per_kg", form.errors)
 
+    def test_batch_ams_hardware_and_floor_calculation(self):
+        """
+        Verify batch plate division, AMS multi-spool purge, hardware add-ons,
+        and minimum order floor charge calculation.
+        """
+        saved_print = SavedPrint(
+            user=self.user,
+            printer=self.printer,
+            item_name="Keyring Batch",
+            plate_quantity=4,
+            flat_setup_cost=Decimal("1.00"),
+            per_unit_post_cost=Decimal("0.25"),
+            filament_type="PLA",
+            spool_price_per_kg=Decimal("20.00"),
+            filament_grams_used=80,
+            is_multicolor_run=True,
+            purge_grams=Decimal("20.0"),
+            spools_json=(
+                '[{"label":"Black","grams":50,"cost_per_kg":20},'
+                '{"label":"Red","grams":30,"cost_per_kg":20}]'
+            ),
+            print_time_hours=Decimal("2.00"),
+            electricity_rate_kwh=Decimal("0.25"),
+            hardware_json='[{"name":"Keyring","qty":4,"unit_price":0.10}]',
+            markup_percentage=100,
+            apply_min_floor=True,
+            min_floor_charge=Decimal("20.00"),
+        )
+        breakdown = saved_print.calculate_pricing()
+
+        # Model filament: 80g @ £20/kg = 1.60 | Purge: 20g @ £20/kg = 0.40
+        # Waste %: 20 / (80 + 20) = 20.0%
+        self.assertEqual(breakdown["model_filament_cost"], Decimal("1.60"))
+        self.assertEqual(breakdown["purge_cost"], Decimal("0.40"))
+        self.assertEqual(breakdown["waste_pct"], Decimal("20.0"))
+        self.assertEqual(breakdown["hardware_cost"], Decimal("0.40"))
+        self.assertTrue(breakdown["floor_applied"])
+        self.assertEqual(breakdown["retail_price"], Decimal("20.00"))
+        self.assertEqual(breakdown["unit_retail"], Decimal("5.00"))
+
 
 class ViewAccessTests(TestCase):
     """Test URL routing and access controls across public and private views."""
@@ -298,3 +338,34 @@ class CrudOperationTests(TestCase):
         self.assertFalse(
             SavedPrint.objects.filter(id=self.print_item.id).exists()
         )
+
+    def test_load_into_calculator_and_catalogue_summary(self):
+        """Test ?load=<id> pre-populates calculator and catalogue summary."""
+        self.print_item.is_multicolor_run = True
+        self.print_item.purge_grams = Decimal("33.0")
+        self.print_item.spools_json = (
+            '[{"label":"Spool 1 - Red PLA (#DC2626)",'
+            '"grams":30,"cost_per_kg":20},'
+            '{"label":"Spool 2 - Blue PLA",'
+            '"grams":20,"cost_per_kg":22}]'
+        )
+        self.print_item.save()
+
+        summary = self.print_item.get_catalogue_summary()
+        self.assertEqual(len(summary["spools"]), 2)
+        self.assertEqual(summary["spools"][0]["hex_color"], "#DC2626")
+        self.assertIn("3D PRINT QUOTE: Desk Organizer", summary["quote_text"])
+
+        self.client.login(username="crud_user", password="SecurePassword123!")
+        calc_url = f"{reverse('calculator')}?load={self.print_item.id}"
+        response = self.client.get(calc_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["form"].instance.id, self.print_item.id
+        )
+        self.assertIsNotNone(response.context["calculated_result"])
+        self.assertContains(
+            response,
+            "Drag &amp; drop your <code>.gcode</code> or <code>.3mf</code>",
+        )
+        self.assertNotContains(response, 'id="id_item_name_helptext"')

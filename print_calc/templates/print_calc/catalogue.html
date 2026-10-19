@@ -34,67 +34,177 @@
         </div>
     </div>
 
-    <!-- Filament Filter Bar -->
-    <nav class="d-flex flex-wrap align-items-center gap-2 mb-4" aria-label="Filter catalogue by filament material">
-        <span class="text-secondary small fw-bold me-1">Filter by Material:</span>
-        <a href="{% url 'catalogue' %}" class="btn btn-sm {% if not selected_filament %}btn-dark{% else %}btn-outline-secondary{% endif %}">
-            All
-        </a>
-        {% for code, label in filament_choices %}
-            <a href="{% url 'catalogue' %}?filament={{ code }}" class="btn btn-sm {% if selected_filament == code %}btn-dark{% else %}btn-outline-secondary{% endif %}">
-                {{ label }}
-            </a>
-        {% endfor %}
-    </nav>
+    <!-- Filter & Search Bar -->
+    <div class="row g-3 align-items-center justify-content-between mb-4">
+        <div class="col-12 col-lg-7">
+            <nav class="d-flex flex-wrap align-items-center gap-2" aria-label="Filter catalogue by filament material">
+                <span class="text-secondary small fw-bold me-1">Filter by Material:</span>
+                <a href="{% url 'catalogue' %}" class="btn btn-sm {% if not selected_filament %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+                    All
+                </a>
+                {% for code, label in filament_choices %}
+                    <a href="{% url 'catalogue' %}?filament={{ code }}" class="btn btn-sm {% if selected_filament == code %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+                        {{ label }}
+                    </a>
+                {% endfor %}
+            </nav>
+        </div>
+        <div class="col-12 col-lg-5">
+            <form method="get" action="{% url 'catalogue' %}" class="d-flex gap-2" role="search">
+                {% if selected_filament %}
+                    <input type="hidden" name="filament" value="{{ selected_filament }}">
+                {% endif %}
+                <label for="catalogue-search-input" class="visually-hidden">Search saved prints by model or printer</label>
+                <input
+                    type="search"
+                    id="catalogue-search-input"
+                    name="q"
+                    value="{{ search_query }}"
+                    class="form-control form-control-sm"
+                    placeholder="🔍 Search by model name, printer, or material...">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Search</button>
+            </form>
+        </div>
+    </div>
 
     <!-- Items Grid -->
     {% if saved_prints %}
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="catalogue-cards-grid">
             {% for item in saved_prints %}
-                <div class="col">
+                {% with summary=item.get_catalogue_summary %}
+                <div class="col catalogue-card-col" data-search-text="{{ item.item_name|lower }} {{ summary.printer_display|lower }} {{ item.filament_type|lower }}">
                     <article class="card h-100 shadow-sm border-0">
-                        <header class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
-                            <h2 class="h6 mb-0 text-truncate text-white" title="{{ item.item_name }}">{{ item.item_name }}</h2>
-                            <span class="badge bg-secondary">{{ item.filament_type }}</span>
+                        <header class="card-header bg-dark text-white py-3">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <div>
+                                    <h2 class="h6 mb-0 text-white fw-bold" title="{{ item.item_name }}">{{ item.item_name }}</h2>
+                                    <small class="text-white d-block mt-1">Added {{ item.created_on|date:"d M Y" }}</small>
+                                </div>
+                                <span class="badge bg-success fs-6" title="Suggested Selling Price">
+                                    £{{ summary.retail_price }}
+                                </span>
+                            </div>
+
+                            <!-- Key Badges: Printer model, Print time, Multi-color badge (with color dots), Filament/Batch -->
+                            <div class="d-flex flex-wrap align-items-center gap-1 mt-2">
+                                <span class="badge bg-secondary" title="Selected Printer Profile">
+                                    🖨️ {{ summary.printer_display }}
+                                </span>
+                                <span class="badge bg-secondary" title="Total Print Time">
+                                    ⏱️ {{ item.print_time_hours }} hrs
+                                </span>
+                                <span class="badge bg-secondary">
+                                    {{ item.filament_type }}
+                                </span>
+                                {% if item.plate_quantity > 1 %}
+                                    <span class="badge bg-secondary">Batch ×{{ item.plate_quantity }}</span>
+                                {% endif %}
+                                {% if item.is_multicolor_run and summary.spools %}
+                                    <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1" title="Multi-Color AMS Print">
+                                        {% for sp in summary.spools %}
+                                            <span class="spool-color-dot" style="background-color: {{ sp.hex_color }};" aria-hidden="true"></span>
+                                        {% endfor %}
+                                        <span>Multi-Color ({{ summary.spools|length }})</span>
+                                    </span>
+                                {% endif %}
+                            </div>
                         </header>
-                        <div class="card-body">
-                            <ul class="list-group list-group-flush small mb-3">
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span>Printer:</span>
-                                    <strong>{{ item.printer.name|default:"Standard Printer" }}</strong>
+
+                        <div class="card-body d-flex flex-column">
+                            <!-- Print & Material Weights Summary -->
+                            <ul class="list-group list-group-flush small mb-2">
+                                <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                    <span>Batch Quantity:</span>
+                                    <strong>{{ item.plate_quantity }} {% if item.plate_quantity == 1 %}unit{% else %}units{% endif %}</strong>
                                 </li>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span>Filament Used:</span>
-                                    <strong>{{ item.filament_grams_used }}g</strong>
+                                <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                    <span>Model Weight:</span>
+                                    <strong>{{ item.filament_grams_used }}g (@ £{{ item.spool_price_per_kg }}/kg)</strong>
                                 </li>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span>Print Time:</span>
-                                    <strong>{{ item.print_time_hours }} hrs</strong>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span>Production Cost:</span>
-                                    <strong>£{{ item.total_cost }}</strong>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span>Retail Price:</span>
-                                    <strong class="text-success">£{{ item.recommended_retail_price }}</strong>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span>Profit Margin:</span>
-                                    <strong class="text-primary">£{{ item.profit_per_item }} ({{ item.markup_percentage }}%)</strong>
+                                <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                    <span>Purge / Waste Weight:</span>
+                                    <strong>
+                                        {{ item.purge_grams }}g
+                                        {% if item.purge_grams > 0 %}
+                                            ({{ summary.waste_pct }}% waste)
+                                        {% endif %}
+                                    </strong>
                                 </li>
                             </ul>
-                            <p class="text-muted small mb-0">Saved on: {{ item.created_on|date:"d M Y" }}</p>
+
+                            <!-- Multi-Color Spool Breakdown (if applicable) -->
+                            {% if item.is_multicolor_run and summary.spools %}
+                                <div class="p-2 rounded border bg-light mb-2 small">
+                                    <div class="fw-bold mb-1">🎨 Spool Breakdown:</div>
+                                    {% for sp in summary.spools %}
+                                        <div class="d-flex justify-content-between align-items-center py-1 {% if not forloop.last %}border-bottom{% endif %}">
+                                            <span class="d-inline-flex align-items-center gap-1 text-truncate me-2">
+                                                <span class="spool-color-dot flex-shrink-0" style="background-color: {{ sp.hex_color }};" aria-hidden="true"></span>
+                                                <span class="text-truncate">{{ sp.label }}</span>
+                                            </span>
+                                            <strong class="flex-shrink-0">{{ sp.grams }}g (£{{ sp.cost_per_kg }}/kg)</strong>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <!-- Cost & Price Breakdown Totals -->
+                            <div class="p-2 rounded border bg-light mt-auto small">
+                                <div class="d-flex justify-content-between py-1">
+                                    <span>🧵 Material Cost:</span>
+                                    <strong>£{{ summary.material_cost_buffered }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between py-1">
+                                    <span>🖨️ Machine Cost:</span>
+                                    <strong>£{{ summary.machine_cost_buffered }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between py-1 border-bottom">
+                                    <span>⚙️ Hands-on Labor &amp; Add-ons:</span>
+                                    <strong>£{{ summary.extras_cost }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between py-1">
+                                    <span>Total Production Cost:</span>
+                                    <strong>£{{ summary.total_cost }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between py-1">
+                                    <span class="fw-bold">Suggested Selling Price:</span>
+                                    <strong class="text-success fs-6">£{{ summary.retail_price }}</strong>
+                                </div>
+                                {% if item.plate_quantity > 1 %}
+                                    <div class="d-flex justify-content-between py-1 border-top">
+                                        <span>Per Individual Unit (1 of {{ item.plate_quantity }}):</span>
+                                        <strong class="text-success">£{{ summary.unit_retail }} / unit</strong>
+                                    </div>
+                                {% endif %}
+                                <div class="d-flex justify-content-between py-1">
+                                    <span>Your Net Profit ({{ item.markup_percentage }}% markup):</span>
+                                    <strong class="text-primary">£{{ summary.profit }}</strong>
+                                </div>
+                            </div>
                         </div>
-                        <footer class="card-footer bg-light border-0 d-flex justify-content-between gap-2 p-3">
-                            <a href="{% url 'edit_print' item.id %}" class="btn btn-outline-secondary btn-sm flex-fill">Edit</a>
-                            <button 
-                                type="button" 
-                                class="btn btn-outline-danger btn-sm flex-fill" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#deleteModal{{ item.id }}">
-                                Delete
-                            </button>
+
+                        <footer class="card-footer bg-light border-0 p-3">
+                            <div class="d-grid gap-2 mb-2">
+                                <a href="{% url 'calculator' %}?load={{ item.id }}" class="btn btn-primary btn-sm">
+                                    🔄 Load into Calculator
+                                </a>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary btn-sm copy-quote-btn"
+                                    data-quote="{{ summary.quote_text }}">
+                                    📋 Export / Copy Quote
+                                </button>
+                            </div>
+                            <div class="d-flex justify-content-between gap-2">
+                                <a href="{% url 'edit_print' item.id %}" class="btn btn-outline-secondary btn-sm flex-fill">Edit</a>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-outline-danger btn-sm flex-fill" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal{{ item.id }}">
+                                    Delete
+                                </button>
+                            </div>
                         </footer>
                     </article>
                 </div>
@@ -127,6 +237,7 @@
                         </div>
                     </div>
                 </div>
+                {% endwith %}
             {% endfor %}
         </div>
     {% else %}
@@ -140,4 +251,54 @@
         </article>
     {% endif %}
 </section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Live client-side search filter
+    const searchInput = document.getElementById("catalogue-search-input");
+    const cardCols = document.querySelectorAll(".catalogue-card-col");
+    if (searchInput && cardCols.length > 0) {
+        searchInput.addEventListener("input", function () {
+            const q = searchInput.value.trim().toLowerCase();
+            cardCols.forEach(function (col) {
+                const text = col.getAttribute("data-search-text") || "";
+                col.classList.toggle("d-none", q.length > 0 && !text.includes(q));
+            });
+        });
+    }
+
+    // Export / Copy Quote button handler
+    const copyBtns = document.querySelectorAll(".copy-quote-btn");
+    copyBtns.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const quoteText = btn.getAttribute("data-quote") || "";
+            const originalLabel = "📋 Export / Copy Quote";
+            function showCopied() {
+                btn.textContent = "✅ Quote Copied!";
+                btn.classList.remove("btn-outline-secondary");
+                btn.classList.add("btn-success");
+                setTimeout(function () {
+                    btn.textContent = originalLabel;
+                    btn.classList.remove("btn-success");
+                    btn.classList.add("btn-outline-secondary");
+                }, 2200);
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(quoteText).then(showCopied).catch(function () {
+                    showCopied();
+                });
+            } else {
+                const ta = document.createElement("textarea");
+                ta.value = quoteText;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+                showCopied();
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
