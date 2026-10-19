@@ -101,55 +101,67 @@ Wireframes were constructed to establish visual hierarchy, intuitive form contro
 
 The application relies on two relational models in `print_calc/models.py`:
 
-    +-----------------------------------+         +-----------------------------------+
-    |          PrinterMachine           |         |            SavedPrint             |
-    +-----------------------------------+         +-----------------------------------+
-    | id (PK)                           |         | id (PK)                           |
-    | name: CharField(100, unique)      | <-----+ | user: FK(User, CASCADE)           |
-    | brand: CharField(50, blank)       |         | printer: FK(PrinterMachine, NULL) |
-    | average_watts_pla: PositiveInt    |         | item_name: CharField(150)         |
-    | average_watts_abs: PositiveInt    |         | filament_type: CharField(20)      |
-    +-----------------------------------+         | spool_price_per_kg: Decimal(6,2)  |
-                                                  | filament_grams_used: PositiveInt  |
-                                                  | print_time_hours: Decimal(5,2)    |
-                                                  | electricity_rate_kwh: Decimal(4,2)|
-                                                  | markup_percentage: PositiveInt    |
-                                                  | total_cost: Decimal(8,2)          |
-                                                  | recommended_retail_price: Dec(8,2)|
-                                                  | profit_per_item: Decimal(8,2)     |
-                                                  | created_on: DateTimeField         |
-                                                  +-----------------------------------+
+    +---------------------------------------+         +---------------------------------------+
+    |            PrinterMachine             |         |              SavedPrint               |
+    +---------------------------------------+         +---------------------------------------+
+    | id (PK)                               |         | id (PK)                               |
+    | name: CharField(100, unique)          | <-----+ | user: FK(User, CASCADE)               |
+    | brand: CharField(50, blank)           |         | printer: FK(PrinterMachine, SET_NULL) |
+    | default_watts: PositiveIntegerField   |         | machine_watts: PositiveInt (nullable) |
+    | average_watts_pla: PositiveInt        |         | hourly_depreciation: Decimal(5,2)     |
+    | average_watts_abs: PositiveInt        |         | item_name: CharField(150)             |
+    | depreciation_per_hour: Decimal(5,2)   |         | filament_type: CharField(20)          |
+    | cost_basis_note: CharField(150)       |         | spool_price_per_kg: Decimal(6,2)      |
+    +---------------------------------------+         | filament_grams_used: PositiveInt      |
+                                                      | print_time_hours: Decimal(5,2)        |
+                                                      | electricity_rate_kwh: Decimal(6,3)    |
+                                                      | markup_percentage: PositiveInt        |
+                                                      | total_cost: Decimal(8,2)              |
+                                                      | recommended_retail_price: Decimal(8,2)|
+                                                      | profit_per_item: Decimal(8,2)         |
+                                                      | created_on: DateTimeField             |
+                                                      +---------------------------------------+
+
+* **23 Distinct Individual Printer Presets (`0003` Migration)**: Seeded into `PrinterMachine` organized by brand (`Bambu Lab`, `Prusa`, `Creality`, `Elegoo`, `Anycubic`, `Resin`, `Custom`), each with its own unique `default_watts`, `depreciation_per_hour`, and purchase cost/lifespan basis note.
 
 ---
 
 ## 6. Calculation Logic & Formulas
 
-All cost calculations are performed within `SavedPrint.calculate_pricing()` (invoked automatically by `SavedPrint.save()` and `calculator_view`) using Python's `decimal.Decimal` module (`ROUND_HALF_UP`):
+All cost calculations are performed within `SavedPrint.calculate_pricing()` (invoked automatically by `SavedPrint.save()` and `calculator_view`) using Python's `decimal.Decimal` module (`ROUND_HALF_UP`), mirrored live on the client in `static/js/calculator.js`:
 
 1. **Filament Cost:**  
    `Filament Cost = (Spool Price / 1000) * Grams Used`
 
 2. **Electricity Cost:**  
-   `Electricity Cost = (Machine Watts / 1000) * Print Hours * Tariff Rate`  
-   *(Selects `average_watts_abs` for ABS/TPU filaments due to higher chamber/bed temperatures; otherwise selects `average_watts_pla`)*.
+   `Electricity Cost = (Machine Watts / 1000) * Print Hours * Cost per kWh`  
+   *(Auto-populates `Machine Watts` from the selected printer preset while remaining user-editable; supports regional 3-decimal tariffs such as UK `£0.263/kWh`, US `$0.185/kWh`, and EU `€0.28/kWh`)*.
 
-3. **Failure Risk Buffer Multiplier:**  
+3. **Machine Wear / Depreciation Cost:**  
+   `Depreciation Cost = Print Hours * Hourly Depreciation Rate`  
+   *(Auto-populates `Hourly Wear / Depreciation` from the selected printer preset—e.g. `£0.06/hr` for A1 Mini up to `£0.45/hr` for Prusa XL 5-Toolhead—while remaining user-editable)*.
+
+4. **Failure Risk Buffer Multiplier:**  
    - Standard materials (`PLA`, `PETG`): **5% buffer** (multiplier: `1.05`)  
    - High-temp / flexible materials (`ABS`, `TPU`): **15% buffer** (multiplier: `1.15`)  
-   `Total Cost = (Filament Cost + Electricity Cost) * Failure Multiplier`
+   `Total Cost = (Filament Cost + Electricity Cost + Depreciation Cost) * Failure Multiplier`
 
-4. **Retail & Profit:**  
-   `Retail Price = Total Cost * (1 + (Markup % / 100))`  
-   `Profit per Item = Retail Price - Total Cost`
+5. **Target Selling Price, Profit & Gross Margin:**  
+   `Target Selling Price = Total Cost * (1 + (Markup % / 100))`  
+   `Profit per Item = Target Selling Price - Total Cost`  
+   `Gross Margin % = (Profit per Item / Target Selling Price) * 100`
 
 ---
 
 ## 7. Features & Defensive Design
 
 ### Implemented Features
-* **Interactive Cost Calculator**: Allows instant mathematical projections for guests and one-click saving for authenticated users.
+* **Interactive Cost Calculator with Live Breakdown**: Allows instant mathematical projections for guests and one-click saving for authenticated users.
+* **23 Individual Printer Hardware Presets**: Brand-grouped `<optgroup>` dropdown (`Bambu Lab`, `Prusa`, `Creality`, `Elegoo`, `Anycubic`, `Resin`, `Custom`) that immediately populates editable **Machine Wattage (W)** and **Hourly Wear / Depreciation (£/hr)** fields.
+* **Regional Electricity Tariff Pills & Currency Sync**: One-click preset buttons (`UK Ofgem Cap £0.263`, `US National Avg $0.185`, `EU Average €0.28`, `Custom`) that sync currency symbols (`£`, `$`, `€`) across the UI.
+* **Industry Markup Presets & Gross Margin Helper**: Quick-select markup buttons (`40%`, `100%`, `200%`, `Custom`) with a live `Markup % = Gross Margin %` educational banner.
 * **Role-Based Authentication Suite**: Standard Django authentication with user registration, login/logout flash notifications, and Django Admin hardware management for staff/superusers.
-* **Catalogue Dashboard**: Responsive grid cards with filament badges, summary metric cards, and timestamp metadata.
+* **Catalogue Dashboard**: Responsive grid cards with filament material filtering (`All`, `PLA`, `PETG`, `ABS`, `TPU`), summary metric cards, and timestamp metadata.
 * **Defensive CRUD & Custom Error Pages**: Update and Delete operations restricted exclusively to the creator of the item, backed by custom branded `404.html` and `500.html` error templates.
 
 ### Defensive Programming Matrix
@@ -160,59 +172,63 @@ All cost calculations are performed within `SavedPrint.calculate_pricing()` (inv
 | **Cross-User Data Tampering** | User B attempts editing/deleting User A's print ID | View queries `get_object_or_404(SavedPrint, pk=pk, user=request.user)`. Returns custom 404 if item does not belong to logged-in user. |
 | **Accidental Deletion** | Accidental click on delete button | Accessible Bootstrap modal intercepts action; requires secondary explicit confirmation. |
 | **Crawler / GET Deletion** | Web crawler triggers destructive GET request | Delete route only executes deletion on `POST`; GET requests redirect safely back to catalogue. |
-| **Invalid / Negative Form Inputs** | Negative or zero values entered for price, weight, or time | Enforced via `PositiveIntegerField` and `MinValueValidator(Decimal("0.01"))` with clear inline form error messages. |
+| **Invalid / Negative Form Inputs** | Negative or zero values entered for price, weight, time, or kWh rate | Enforced via `PositiveIntegerField` and `MinValueValidator` (`0.01` / `0.001`) with clear inline form error messages. |
 
 ---
 
 ## 8. Testing & Quality Assurance (LO4)
 
 ### 4.1 Automated Python Testing (`python manage.py test`)
-Automated unit tests in `print_calc/tests.py` cover models, calculation accuracy, form validation, view access control, and full CRUD workflows:
+Automated unit tests in `print_calc/tests.py` cover models, calculation accuracy, hardware depreciation, form validation, view access control, and full CRUD workflows:
 * `PrinterMachineModelTests.test_printer_string_representation`: Confirms correct `__str__` formatting.
 * `SavedPrintModelTests.test_pla_failure_multiplier_calculation`: Validates `Decimal` precision formulas, 5% PLA failure buffer, and retail pricing.
 * `SavedPrintModelTests.test_abs_failure_multiplier_calculation`: Validates high-temp wattage selection and 15% ABS failure buffer.
+* `SavedPrintModelTests.test_depreciation_and_custom_watts_calculation`: Validates hourly machine wear/depreciation and custom wattage overrides in `calculate_pricing()`.
 * `SavedPrintModelTests.test_negative_form_values_rejected`: Verifies `SavedPrintForm` and `MinValueValidator` reject negative numeric inputs.
 * `ViewAccessTests.test_calculator_page_loads_for_anonymous_user`: Verifies public access (HTTP 200).
 * `ViewAccessTests.test_catalogue_redirects_unauthenticated_user`: Verifies unauthenticated redirect (HTTP 302).
 * `ViewAccessTests.test_catalogue_loads_for_authenticated_user`: Verifies authenticated catalogue access (HTTP 200).
-* `ViewAccessTests.test_anonymous_calculator_post_returns_breakdown`: Verifies guest calculation returns itemized filament, electricity, buffer, total, retail, and profit breakdown.
+* `ViewAccessTests.test_anonymous_calculator_post_returns_breakdown`: Verifies guest calculation returns itemized filament, electricity, depreciation, buffer, total, retail, and profit breakdown.
 * `ViewAccessTests.test_catalogue_filters_by_filament_type`: Verifies `?filament=` query parameter filters catalogue items and summary metrics accurately.
 * `CrudOperationTests.test_edit_print_updates_record`: Validates record update via POST request.
 * `CrudOperationTests.test_delete_print_removes_record_via_post`: Validates record deletion via POST request.
 
-All 11 automated tests pass with zero errors:
+All 12 automated tests pass with zero errors:
 ```text
-Ran 11 tests in 9.4s
+Ran 12 tests in 14.2s
 OK
 ```
 
 ### 4.2 JavaScript Test Procedures (`static/js/calculator.js`)
-Custom front-end JavaScript in `static/js/calculator.js` powers the industry markup preset pills (`40%`, `100%`, `200%`, `Custom`), dynamic Markup-to-Gross-Margin contextual helper, and instant live breakdown card updates:
+Custom front-end JavaScript in `static/js/calculator.js` powers the 23 printer hardware presets, regional electricity tariff pills, dynamic currency syncing, industry markup presets, and live breakdown card updates:
 
 | JS Feature / Function | User Interaction Tested | Expected Outcome | Result |
 | :--- | :--- | :--- | :---: |
+| **Printer Hardware Auto-Fill** (`applyPrinterPreset`) | Select any of the 23 printers (e.g. `Bambu Lab X1C`) | Immediately populates `Machine Wattage` (`135W`) and `Hourly Wear` (`£0.17/hr`), updates preset note, and recalculates cost | Pass |
+| **Editable Hardware Overrides** (`recalculatePricing`) | Manually tweak populated wattage or hourly depreciation | Retains custom user value without locking the input and recalculates total print cost immediately | Pass |
+| **Regional Electricity Presets & Currency Sync** (`syncRatePresetHighlight`, `setCurrencySymbol`) | Click `UK (£0.263)`, `US ($0.185)`, or `EU (€0.28)` | Fills `#id_electricity_rate_kwh`, syncs `.currency-symbol` (`£`, `$`, `€`) across inputs & summary card, and recalculates | Pass |
 | **Markup Preset Pills** (`syncPresetHighlight`) | Click `Wholesale (40%)`, `Retail (100%)`, or `Prototyping (200%)` | Updates `#id_markup_percentage`, highlights active pill (`aria-pressed="true"`), and recalculates live margin & price | Pass |
-| **Custom Markup Detection** (`syncPresetHighlight`) | Manually type `75` into the markup input field | Automatically switches active pill highlight to `Custom` | Pass |
-| **Contextual Margin Helper** (`recalculatePricing`) | Enter print specs and adjust markup or presets | Displays `[X]% Markup = [Y]% Gross Margin (Profit: £[Z])` using `((Retail - Cost) / Retail) * 100` | Pass |
+| **Custom Input Detection** (`syncPresetHighlight`, `syncRatePresetHighlight`) | Manually type a custom tariff (`0.07`) or markup (`75`) | Automatically switches the corresponding active preset pill to `Custom` | Pass |
 | **Bootstrap Modals & Collapse** (`bootstrap.bundle.min.js`) | Toggle mobile navbar and open/cancel delete modal | Drawer and confirmation modal open, trap focus, and dismiss cleanly | Pass |
 
 ### 4.3 Manual Testing Matrix
 
 | Feature | Action | Expected Result | Result |
 | :--- | :--- | :--- | :---: |
-| **Calculator Form (Guest)** | Fill out inputs and click Calculate Cost Estimate | Itemized breakdown (filament, electricity, buffer, total, retail, profit) displays with guest callout | Pass |
+| **Calculator Form (Guest)** | Fill out inputs and click Calculate Cost Estimate | Itemized breakdown (filament, electricity, wear, buffer, total, selling price, profit) displays with guest callout | Pass |
 | **Form Validation** | Submit negative spool price or empty required fields | Submission blocked; inline field error messages displayed | Pass |
 | **User Sign Up** | Submit registration form | Account created, user logged in, welcome flash message displayed | Pass |
 | **Login / Logout Flash** | Sign in and sign out via navbar | Flash alerts confirm login (`Welcome back...`) and logout (`Safely signed out`) | Pass |
 | **Catalogue View & Filter** | Log in, view catalogue, click filament filter pills (`PLA`, `PETG`, etc.) | User-specific prints filter by material and update summary metrics | Pass |
-| **Edit Calculation** | Change spool price or markup preset and submit | New retail price and cost computed, DB updated, success alert shown | Pass |
+| **Edit Calculation** | Change printer, electricity tariff, or markup preset and submit | New selling price and cost computed, DB updated, success alert shown | Pass |
 | **Delete Modal (Cancel)** | Click delete, cancel modal | Modal dismisses, record remains untouched | Pass |
 | **Confirm Delete (POST)** | Click delete, confirm in modal | Item removed from DB, catalogue reloads with confirmation message | Pass |
 | **Cross-User Access Guard** | Attempt `/edit/<id>/` of another user's print | Returns 404 Not Found error page | Pass |
 
-### Code Validation & Lighthouse Audits
+### Code Validation, WAVE Accessibility & Lighthouse Audits
 
 * **Python PEP 8 (`flake8`)**: Enforced with `.flake8` (`max-line-length = 79`). Passes with **0 errors / 0 warnings** (`100% compliant`).
+* **WAVE Web Accessibility Evaluation Tool**: Audited across all pages (`/`, `/catalogue/`, `/edit/<pk>/`, `/login/`, `/signup/`) with **0 Errors, 0 Contrast Errors, 0 Broken ARIA References, and 0 Alerts**.
 * **W3C HTML5 & CSS3 Validation** (Tested via official [W3C Nu HTML & CSS Validator](https://validator.w3.org/nu/)):
 
 | Page / File | Validator | Errors | Warnings | Result |
@@ -231,8 +247,6 @@ Custom front-end JavaScript in `static/js/calculator.js` powers the industry mar
 | **Desktop** | **100** | **96** | **100** | **100** | [View Desktop PDF](docs/3dprint-lighthouse-desktop.pdf) |
 | **Mobile** | **99** | **95** | **100** | **100** | [View Mobile PDF](docs/3dprint-lighthouse-mobile.pdf) |
 
-*Note: Initial accessibility check noted low-contrast text on muted descriptive notes; resolved by darkening secondary text classes to `#495057` to satisfy WCAG AA 4.5:1 ratio requirements.*
-
 ---
 
 ## 9. Bugs & Resolved Issues
@@ -243,10 +257,13 @@ Custom front-end JavaScript in `static/js/calculator.js` powers the industry mar
 2. **Catalogue Retail Price Template Attribute Mismatch**:
    * *Issue*: `catalogue.html` initially referenced `{{ item.retail_price }}` instead of the model field `{{ item.recommended_retail_price }}`, causing blank retail prices on saved cards.
    * *Fix*: Updated template binding to `{{ item.recommended_retail_price }}`.
-3. **W3C Nu HTML Validator Errors (Inline SVG Favicon & Modal ARIA Role)**:
+3. **Django 5+ `aria-describedby` Broken Reference in Custom Templates (WAVE Audit)**:
+   * *Issue*: Django 5.0+ automatically injects `aria-describedby="id_<field>_helptext"` onto form inputs with `help_text`, which WAVE flagged as broken ARIA references when custom `<div class="form-text">` elements lacked matching `id` attributes.
+   * *Fix*: Added `id="{{ field.auto_id }}_helptext"` to all help-text containers across `calculator.html`, `edit_print.html`, and `signup.html`.
+4. **W3C Nu HTML Validator Errors (Inline SVG Favicon & Modal ARIA Role)**:
    * *Issue*: W3C validation flagged unencoded `<` and `>` characters inside the `data:image/svg+xml` favicon href in `base.html`, as well as `aria-labelledby` on the delete modal `<div>` in `catalogue.html` lacking an explicit `role="dialog"`.
    * *Fix*: URL-encoded the SVG data URI (`%3C`, `%3E`, `%20`) in `base.html`, added `role="dialog"` to the modal container in `catalogue.html`, and flattened `<section>`/`<article>` card wrappers so `<h1>` remains the top-level heading of `<main>`.
-4. **Model String Representation Whitespace**:
+5. **Model String Representation Whitespace**:
    * *Issue*: `PrinterMachine.__str__` produced an unexpected leading space when machines were instantiated without an explicit brand.
    * *Fix*: Added conditional string formatting checking for brand existence before prepending.
 
