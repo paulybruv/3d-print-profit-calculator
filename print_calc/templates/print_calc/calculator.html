@@ -11,7 +11,18 @@
             <div class="card shadow-sm border-0">
                 <header class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h1 id="calc-page-title" class="h4 mb-0 text-white">⚙️ 3D Print Cost Calculator</h1>
-                    <span class="badge bg-secondary">Drop &amp; Done</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <button
+                            type="button"
+                            id="how-it-works-trigger"
+                            class="btn btn-sm how-it-works-pill"
+                            aria-controls="howItWorksDrawer"
+                            aria-expanded="false"
+                            aria-haspopup="dialog">
+                            💡 How it Works
+                        </button>
+                        <span class="badge bg-secondary">Drop &amp; Done</span>
+                    </div>
                 </header>
                 <div class="card-body p-4">
 
@@ -33,8 +44,19 @@
                             <input type="file" id="slicer-file-input" class="visually-hidden" accept=".gcode,.3mf,.gco">
                         </label>
                         <div id="slicer-parse-toast" class="alert alert-success mt-2 mb-0 py-2 px-3 small d-none text-start" role="status" aria-live="polite">
-                            <strong id="slicer-toast-title">✅ Auto-Filled from File:</strong>
-                            <span id="slicer-toast-body"></span>
+                            <div class="d-flex align-items-center gap-3">
+                                <div id="slicer-thumb-wrapper" class="slicer-thumb-box d-none flex-shrink-0">
+                                    <img
+                                        id="slicer-thumb-img"
+                                        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                                        alt="3D model plate preview extracted from slicer file"
+                                        class="slicer-thumb-img">
+                                </div>
+                                <div>
+                                    <strong id="slicer-toast-title" class="d-block">✅ Auto-Filled from File:</strong>
+                                    <span id="slicer-toast-body"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -492,6 +514,13 @@
 
                     <!-- Large Bold Suggested Selling Price Hero -->
                     <div class="text-center p-3 rounded border bg-light mb-3">
+                        <div id="live-result-thumb-wrapper" class="mb-2 d-none">
+                            <img
+                                id="live-result-thumb-img"
+                                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                                alt="Sliced 3D build plate preview"
+                                class="slicer-result-thumb-img">
+                        </div>
                         <span class="d-block fw-bold text-uppercase small text-secondary mb-1" id="live-plate-heading">
                             Suggested Selling Price
                         </span>
@@ -588,7 +617,90 @@
     </div>
 </div>
 
+<!-- ========================================================= -->
+<!-- INTERACTIVE "HOW IT WORKS" SLIDE-OUT DRAWER & BACKDROP    -->
+<!-- ========================================================= -->
+<div id="howItWorksBackdrop" class="how-it-works-backdrop" aria-hidden="true"></div>
+
+<div
+    id="howItWorksDrawer"
+    class="how-it-works-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="howItWorksTitle"
+    aria-hidden="true"
+    tabindex="-1">
+    <div class="how-it-works-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+        <h2 id="howItWorksTitle" class="h5 fw-bold mb-0 text-white">
+            💡 Getting Accurate Prices in Seconds
+        </h2>
+        <button
+            type="button"
+            id="how-it-works-close-btn"
+            class="btn btn-sm how-it-works-close"
+            aria-label="Close How It Works guide">
+            ✕
+        </button>
+    </div>
+
+    <div class="how-it-works-body p-4">
+        <!-- Step 1 -->
+        <div class="mb-3 p-3 rounded border bg-light">
+            <h3 class="h6 fw-bold mb-1">
+                Step 1: 📁 Drop Your Sliced File (<code>.gcode</code> or <code>.3mf</code>)
+            </h3>
+            <p class="small text-secondary mb-0">
+                Export your sliced plate directly from <strong>Bambu Studio, OrcaSlicer, PrusaSlicer, or Cura</strong>. Dropping the file auto-fills your <strong>printer profile, runtime, filament weights, and individual AMS spool colors</strong>.
+            </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="mb-3 p-3 rounded border bg-light">
+            <h3 class="h6 fw-bold mb-1">
+                Step 2: ⚠️ Why Purge &amp; Waste Matters
+            </h3>
+            <p class="small text-secondary mb-0">
+                On multi-color prints, flushed &lsquo;poop&rsquo; and wipe towers can easily equal <strong>40%&ndash;60% of your total filament</strong>. Most makers lose money by only charging for the finished model weight. We automatically detect and price your <strong>purged plastic so the client pays for the true material cost</strong>.
+            </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="mb-3 p-3 rounded border bg-light">
+            <h3 class="h6 fw-bold mb-1">
+                Step 3: ⚡ Machine Wear &amp; Power
+            </h3>
+            <p class="small text-secondary mb-0">
+                We factor in your printer&rsquo;s <strong>average sustained wattage</strong> (not peak supply) and <strong>hourly hardware wear/depreciation</strong> so your equipment pays for its own maintenance and nozzles over time.
+            </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="p-3 rounded border bg-light">
+            <h3 class="h6 fw-bold mb-2">
+                Step 4: 📈 Markup Guidelines
+            </h3>
+            <ul class="small text-secondary ps-3 mb-0">
+                <li class="mb-1">
+                    <strong>Wholesale (40%):</strong> Best for print-farm bulk batches (20+ units).
+                </li>
+                <li class="mb-1">
+                    <strong>Retail / DTC (100%):</strong> Standard for Etsy, craft fairs, and single items (50% gross margin).
+                </li>
+                <li>
+                    <strong>Prototyping / Custom (200%):</strong> Best for one-off CAD jobs, rush orders, or complex engineering prints.
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="how-it-works-footer p-3 border-top bg-light">
+        <button type="button" id="how-it-works-got-it-btn" class="btn btn-primary w-100 fw-bold">
+            Got it, let&rsquo;s price a print
+        </button>
+    </div>
+</div>
+
 {{ printer_watts|json_script:"printer-watts-data" }}
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" crossorigin="anonymous" defer></script>
-<script src="{% static 'js/calculator.js' %}?v=8" defer></script>
+<script src="{% static 'js/calculator.js' %}?v=14" defer></script>
 {% endblock %}

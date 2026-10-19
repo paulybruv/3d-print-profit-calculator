@@ -39,6 +39,38 @@
     background-color: #bfdbfe;
 }
 
+/* Extracted 3D Slicer Plate Thumbnail Preview */
+.slicer-thumb-box {
+    width: 68px;
+    height: 68px;
+    background-color: #1e293b;
+    border-radius: 0.5rem;
+    border: 1px solid #475569;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.slicer-thumb-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.slicer-result-thumb-img {
+    width: 112px;
+    height: 112px;
+    object-fit: contain;
+    background-color: #1e293b;
+    border-radius: 0.65rem;
+    border: 1px solid #475569;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(17, 24, 39, 0.15);
+}
+
 /* Multi-color spool indicator dots */
 .spool-color-dot {
     display: inline-block;
@@ -321,5 +353,124 @@ button:disabled,
 .markup-helper-box {
     background-color: #f1f5f9 !important;
     border-left: 4px solid #084298 !important;
+    color: #111827 !important;
+}
+
+/* "How It Works" Trigger Pill & Slide-Out Drawer / Mobile Bottom Sheet */
+.how-it-works-pill {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 50rem;
+    font-weight: 600;
+    padding: 0.2rem 0.75rem;
+    transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+}
+
+.how-it-works-pill:hover,
+.how-it-works-pill:focus {
+    background-color: #e0f2fe !important;
+    color: #052c65 !important;
+    border-color: #084298 !important;
+}
+
+.drawer-scroll-locked {
+    overflow: hidden !important;
+}
+
+.how-it-works-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(17, 24, 39, 0.55);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease-in-out, visibility 0.25s ease-in-out;
+    z-index: 1050;
+}
+
+.how-it-works-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.how-it-works-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 440px;
+    max-width: 100%;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: -8px 0 24px rgba(17, 24, 39, 0.25);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s ease-in-out;
+    z-index: 1055;
+}
+
+.how-it-works-drawer.is-open {
+    transform: translateX(0);
+    visibility: visible;
+}
+
+@media (max-width: 575.98px) {
+    .how-it-works-drawer {
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-height: 85vh;
+        border-top-left-radius: 1rem;
+        border-top-right-radius: 1rem;
+        transform: translateY(100%);
+    }
+
+    .how-it-works-drawer.is-open {
+        transform: translateY(0);
+    }
+
+    .how-it-works-header {
+        border-top-left-radius: 1rem;
+        border-top-right-radius: 1rem;
+    }
+}
+
+.how-it-works-header {
+    background-color: #111827 !important;
+    color: #ffffff !important;
+    flex-shrink: 0;
+}
+
+.how-it-works-close {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+    border: 1px solid #9ca3af !important;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.35rem 0.6rem;
+}
+
+.how-it-works-close:hover,
+.how-it-works-close:focus {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+.how-it-works-body {
+    overflow-y: auto;
+    flex-grow: 1;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+.how-it-works-footer {
+    flex-shrink: 0;
+    background-color: #f8f9fa !important;
     color: #111827 !important;
 }

@@ -850,6 +850,33 @@ document.addEventListener("DOMContentLoaded", function () {
             toggleAmsDrawer();
         }
 
+        const thumbWrapper = document.getElementById("slicer-thumb-wrapper");
+        const thumbImg = document.getElementById("slicer-thumb-img");
+        const liveResultThumbWrapper = document.getElementById(
+            "live-result-thumb-wrapper"
+        );
+        const liveResultThumbImg = document.getElementById(
+            "live-result-thumb-img"
+        );
+
+        if (data && data.thumbnailDataUrl) {
+            if (thumbImg && thumbWrapper) {
+                thumbImg.src = data.thumbnailDataUrl;
+                thumbWrapper.classList.remove("d-none");
+            }
+            if (liveResultThumbImg && liveResultThumbWrapper) {
+                liveResultThumbImg.src = data.thumbnailDataUrl;
+                liveResultThumbWrapper.classList.remove("d-none");
+            }
+        } else {
+            if (thumbWrapper) {
+                thumbWrapper.classList.add("d-none");
+            }
+            if (liveResultThumbWrapper) {
+                liveResultThumbWrapper.classList.add("d-none");
+            }
+        }
+
         if (parseToast && parseToastBody) {
             const parts = [];
             if (matchedPrinterName) {
@@ -877,6 +904,71 @@ document.addEventListener("DOMContentLoaded", function () {
         recalculatePricing();
     }
 
+    function extractGcodeThumbnailDataUrl(text) {
+        if (!text) {
+            return null;
+        }
+        const headText = text.slice(0, 350000);
+        const regex =
+            /;\s*thumbnail(_JPG)?\s+begin\s+([^\r\n]*)\r?\n([\s\S]*?);\s*thumbnail(?:\1)?\s+end/gi;
+        let match;
+        let bestB64 = "";
+        let bestMime = "image/png";
+
+        while ((match = regex.exec(headText)) !== null) {
+            const isJpg = Boolean(match[1]);
+            const rawBlock = match[3] || "";
+            const cleaned = rawBlock
+                .split(/\r?\n/)
+                .map(function (line) {
+                    return line.replace(/^\s*;\s?/, "").trim();
+                })
+                .join("");
+            if (cleaned.length > bestB64.length && cleaned.length > 64) {
+                bestB64 = cleaned;
+                bestMime =
+                    isJpg || cleaned.indexOf("/9j/") === 0
+                        ? "image/jpeg"
+                        : "image/png";
+            }
+        }
+
+        if (bestB64) {
+            return "data:" + bestMime + ";base64," + bestB64;
+        }
+        return null;
+    }
+
+    function score3mfThumbnailPath(relPath) {
+        const p = relPath.toLowerCase();
+        if (
+            /nozzle|bed_shape|filament|logo|icon|top_\d+|pick_\d+|cali/i.test(
+                p
+            )
+        ) {
+            return -1;
+        }
+        if (/metadata\/plate_1\.png$/i.test(p)) {
+            return 100;
+        }
+        if (/plate_1\.png$/i.test(p)) {
+            return 95;
+        }
+        if (/plate_\d+\.png$/i.test(p) && !/small/i.test(p)) {
+            return 90;
+        }
+        if (/thumbnail\.png$/i.test(p)) {
+            return 85;
+        }
+        if (/plate_\d+_small\.png$/i.test(p)) {
+            return 75;
+        }
+        if (/metadata\/.*\.(png|jpg|jpeg|webp)$/i.test(p)) {
+            return 60;
+        }
+        return 20;
+    }
+
     function handleSlicerFile(file) {
         if (!file) {
             return;
@@ -888,31 +980,83 @@ document.addEventListener("DOMContentLoaded", function () {
             window.JSZip.loadAsync(file)
                 .then(function (zip) {
                     const fileEntries = [];
+                    const imageCandidates = [];
+
                     zip.forEach(function (relPath, entry) {
+                        if (entry.dir) {
+                            return;
+                        }
                         if (
                             /\.(gcode|gco|xml|config|json|info)$/i.test(
                                 relPath
-                            ) &&
-                            !entry.dir
+                            )
                         ) {
                             fileEntries.push({
                                 path: relPath,
                                 promise: entry.async("string"),
                             });
+                        } else if (
+                            /\.(png|jpg|jpeg|webp)$/i.test(relPath)
+                        ) {
+                            const score = score3mfThumbnailPath(relPath);
+                            if (score > 0) {
+                                imageCandidates.push({
+                                    path: relPath,
+                                    score: score,
+                                    entry: entry,
+                                });
+                            }
                         }
                     });
-                    return Promise.all(
-                        fileEntries.map(function (item) {
-                            return item.promise.then(function (content) {
-                                return {
-                                    path: item.path,
-                                    content: content,
-                                };
-                            });
-                        })
-                    );
+
+                    imageCandidates.sort(function (a, b) {
+                        return b.score - a.score;
+                    });
+                    const bestImg =
+                        imageCandidates.length > 0
+                            ? imageCandidates[0]
+                            : null;
+                    const thumbPromise = bestImg
+                        ? bestImg.entry
+                              .async("base64")
+                              .then(function (b64) {
+                                  if (!b64 || b64.length < 32) {
+                                      return null;
+                                  }
+                                  const ext = bestImg.path
+                                      .split(".")
+                                      .pop()
+                                      .toLowerCase();
+                                  const mime =
+                                      ext === "jpg" || ext === "jpeg"
+                                          ? "image/jpeg"
+                                          : ext === "webp"
+                                            ? "image/webp"
+                                            : "image/png";
+                                  return "data:" + mime + ";base64," + b64;
+                              })
+                              .catch(function () {
+                                  return null;
+                              })
+                        : Promise.resolve(null);
+
+                    return Promise.all([
+                        Promise.all(
+                            fileEntries.map(function (item) {
+                                return item.promise.then(function (content) {
+                                    return {
+                                        path: item.path,
+                                        content: content,
+                                    };
+                                });
+                            })
+                        ),
+                        thumbPromise,
+                    ]);
                 })
-                .then(function (resolvedFiles) {
+                .then(function (results) {
+                    const resolvedFiles = results[0];
+                    const zipThumbDataUrl = results[1];
                     const plateGcodeArr = [];
                     const sliceConfigArr = [];
                     const projectConfigArr = [];
@@ -948,6 +1092,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         .join("\n");
 
                     const parsed = parseGcodeText(combined, structured3mf);
+                    parsed.thumbnailDataUrl =
+                        zipThumbDataUrl ||
+                        extractGcodeThumbnailDataUrl(combined);
                     applyParsedSlicerData(name, parsed);
                 })
                 .catch(function () {
@@ -964,6 +1111,7 @@ document.addEventListener("DOMContentLoaded", function () {
             reader.onload = function (e) {
                 const text = String(e.target.result || "");
                 const parsed = parseGcodeText(text, null);
+                parsed.thumbnailDataUrl = extractGcodeThumbnailDataUrl(text);
                 applyParsedSlicerData(name, parsed);
             };
             reader.readAsText(file);
@@ -1982,6 +2130,74 @@ document.addEventListener("DOMContentLoaded", function () {
         if (inputEl) {
             inputEl.addEventListener("input", recalculatePricing);
             inputEl.addEventListener("change", recalculatePricing);
+        }
+    });
+
+    // ---------------------------------------------------------------------
+    // 6. "HOW IT WORKS" SLIDE-OUT DRAWER & BACKDROP
+    // ---------------------------------------------------------------------
+    const howItWorksTrigger = document.getElementById("how-it-works-trigger");
+    const howItWorksDrawer = document.getElementById("howItWorksDrawer");
+    const howItWorksBackdrop = document.getElementById("howItWorksBackdrop");
+    const howItWorksCloseBtn = document.getElementById(
+        "how-it-works-close-btn"
+    );
+    const howItWorksGotItBtn = document.getElementById(
+        "how-it-works-got-it-btn"
+    );
+
+    function openHowItWorksDrawer() {
+        if (!howItWorksDrawer || !howItWorksBackdrop) {
+            return;
+        }
+        howItWorksDrawer.classList.add("is-open");
+        howItWorksBackdrop.classList.add("is-open");
+        howItWorksDrawer.setAttribute("aria-hidden", "false");
+        if (howItWorksTrigger) {
+            howItWorksTrigger.setAttribute("aria-expanded", "true");
+        }
+        document.body.classList.add("drawer-scroll-locked");
+        if (howItWorksCloseBtn) {
+            howItWorksCloseBtn.focus();
+        }
+    }
+
+    function closeHowItWorksDrawer() {
+        if (!howItWorksDrawer || !howItWorksBackdrop) {
+            return;
+        }
+        if (!howItWorksDrawer.classList.contains("is-open")) {
+            return;
+        }
+        howItWorksDrawer.classList.remove("is-open");
+        howItWorksBackdrop.classList.remove("is-open");
+        howItWorksDrawer.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("drawer-scroll-locked");
+        if (howItWorksTrigger) {
+            howItWorksTrigger.setAttribute("aria-expanded", "false");
+            howItWorksTrigger.focus();
+        }
+    }
+
+    if (howItWorksTrigger) {
+        howItWorksTrigger.addEventListener("click", openHowItWorksDrawer);
+    }
+    if (howItWorksCloseBtn) {
+        howItWorksCloseBtn.addEventListener("click", closeHowItWorksDrawer);
+    }
+    if (howItWorksGotItBtn) {
+        howItWorksGotItBtn.addEventListener("click", closeHowItWorksDrawer);
+    }
+    if (howItWorksBackdrop) {
+        howItWorksBackdrop.addEventListener("click", closeHowItWorksDrawer);
+    }
+    document.addEventListener("keydown", function (e) {
+        if (
+            e.key === "Escape" &&
+            howItWorksDrawer &&
+            howItWorksDrawer.classList.contains("is-open")
+        ) {
+            closeHowItWorksDrawer();
         }
     });
 

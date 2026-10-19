@@ -30,8 +30,19 @@
                         <input type="file" id="slicer-file-input" class="visually-hidden" accept=".gcode,.3mf,.gco">
                     </label>
                     <div id="slicer-parse-toast" class="alert alert-success mt-2 mb-0 py-2 px-3 small d-none text-start" role="status" aria-live="polite">
-                        <strong id="slicer-toast-title">✅ Auto-Filled from File:</strong>
-                        <span id="slicer-toast-body"></span>
+                        <div class="d-flex align-items-center gap-3">
+                            <div id="slicer-thumb-wrapper" class="slicer-thumb-box d-none flex-shrink-0">
+                                <img
+                                    id="slicer-thumb-img"
+                                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                                    alt="3D model plate preview extracted from slicer file"
+                                    class="slicer-thumb-img">
+                            </div>
+                            <div>
+                                <strong id="slicer-toast-title" class="d-block">✅ Auto-Filled from File:</strong>
+                                <span id="slicer-toast-body"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -426,5 +437,5 @@
 
 {{ printer_watts|json_script:"printer-watts-data" }}
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" crossorigin="anonymous" defer></script>
-<script src="{% static 'js/calculator.js' %}?v=8" defer></script>
+<script src="{% static 'js/calculator.js' %}?v=14" defer></script>
 {% endblock %}
