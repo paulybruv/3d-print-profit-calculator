@@ -135,6 +135,19 @@ class SavedPrint(models.Model):
         self.recommended_retail_price = calculated_retail
         self.profit_per_item = calculated_retail - calculated_cost
 
+        return {
+            "filament_cost": filament_cost.quantize(
+                two_places, rounding=ROUND_HALF_UP
+            ),
+            "electricity_cost": electricity_cost.quantize(
+                two_places, rounding=ROUND_HALF_UP
+            ),
+            "failure_buffer_pct": 15 if is_high_temp else 5,
+            "total_cost": self.total_cost,
+            "retail_price": self.recommended_retail_price,
+            "profit": self.profit_per_item,
+        }
+
     def save(self, *args, **kwargs):
         """Calculates pricing metrics before saving the record."""
         self.calculate_pricing()

@@ -62,12 +62,10 @@ def calculator_view(request):
                 )
                 return redirect("catalogue")
             else:
-                print_item.calculate_pricing()
+                breakdown = print_item.calculate_pricing()
                 calculated_result = {
                     "item_name": print_item.item_name,
-                    "total_cost": print_item.total_cost,
-                    "retail_price": print_item.recommended_retail_price,
-                    "profit": print_item.profit_per_item,
+                    **breakdown,
                 }
                 messages.info(
                     request,
@@ -90,6 +88,13 @@ def catalogue_view(request):
         "-created_on"
     )
 
+    selected_filament = request.GET.get("filament", "")
+    valid_filaments = [choice[0] for choice in SavedPrint.FILAMENT_CHOICES]
+    if selected_filament in valid_filaments:
+        saved_prints = saved_prints.filter(filament_type=selected_filament)
+    else:
+        selected_filament = ""
+
     total_items = saved_prints.count()
     avg_profit = 0
     if total_items > 0:
@@ -102,6 +107,8 @@ def catalogue_view(request):
         "saved_prints": saved_prints,
         "total_items": total_items,
         "avg_profit": avg_profit,
+        "selected_filament": selected_filament,
+        "filament_choices": SavedPrint.FILAMENT_CHOICES,
     }
     return render(request, "print_calc/catalogue.html", context)
 

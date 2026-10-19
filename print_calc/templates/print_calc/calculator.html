@@ -39,7 +39,13 @@
                         {% endfor %}
 
                         <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">Calculate & Save</button>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                {% if user.is_authenticated %}
+                                    Calculate & Save to Catalogue
+                                {% else %}
+                                    Calculate Cost Estimate
+                                {% endif %}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -55,6 +61,18 @@
                     </header>
                     <div class="card-body">
                         <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
+                                <span>Material (Filament) Cost:</span>
+                                <span>£{{ calculated_result.filament_cost }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
+                                <span>Electricity Overhead:</span>
+                                <span>£{{ calculated_result.electricity_cost }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
+                                <span>Failure Risk Buffer:</span>
+                                <span>+{{ calculated_result.failure_buffer_pct }}%</span>
+                            </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center py-2">
                                 <span>Total Production Cost:</span>
                                 <strong>£{{ calculated_result.total_cost }}</strong>

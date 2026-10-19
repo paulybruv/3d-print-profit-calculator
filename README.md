@@ -175,12 +175,14 @@ Automated unit tests in `print_calc/tests.py` cover models, calculation accuracy
 * `ViewAccessTests.test_calculator_page_loads_for_anonymous_user`: Verifies public access (HTTP 200).
 * `ViewAccessTests.test_catalogue_redirects_unauthenticated_user`: Verifies unauthenticated redirect (HTTP 302).
 * `ViewAccessTests.test_catalogue_loads_for_authenticated_user`: Verifies authenticated catalogue access (HTTP 200).
+* `ViewAccessTests.test_anonymous_calculator_post_returns_breakdown`: Verifies guest calculation returns itemized filament, electricity, buffer, total, retail, and profit breakdown.
+* `ViewAccessTests.test_catalogue_filters_by_filament_type`: Verifies `?filament=` query parameter filters catalogue items and summary metrics accurately.
 * `CrudOperationTests.test_edit_print_updates_record`: Validates record update via POST request.
 * `CrudOperationTests.test_delete_print_removes_record_via_post`: Validates record deletion via POST request.
 
-All 9 automated tests pass with zero errors:
+All 11 automated tests pass with zero errors:
 ```text
-Ran 9 tests in 8.1s
+Ran 11 tests in 9.4s
 OK
 ```
 
@@ -191,11 +193,11 @@ The application deliberately avoids custom JavaScript files in favor of declarat
 
 | Feature | Action | Expected Result | Result |
 | :--- | :--- | :--- | :---: |
-| **Calculator Form (Guest)** | Fill out inputs and click Calculate | Calculations display accurately with info flash message and guest callout | Pass |
+| **Calculator Form (Guest)** | Fill out inputs and click Calculate Cost Estimate | Itemized breakdown (filament, electricity, buffer, total, retail, profit) displays with guest callout | Pass |
 | **Form Validation** | Submit negative spool price or empty required fields | Submission blocked; inline field error messages displayed | Pass |
 | **User Sign Up** | Submit registration form | Account created, user logged in, welcome flash message displayed | Pass |
 | **Login / Logout Flash** | Sign in and sign out via navbar | Flash alerts confirm login (`Welcome back...`) and logout (`Safely signed out`) | Pass |
-| **Catalogue View** | Log in and view catalogue | User-specific prints display with accurate retail prices and summary metrics | Pass |
+| **Catalogue View & Filter** | Log in, view catalogue, click filament filter pills (`PLA`, `PETG`, etc.) | User-specific prints filter by material and update summary metrics | Pass |
 | **Edit Calculation** | Change spool price or electricity tariff and submit | New retail price and cost computed, DB updated, success alert shown | Pass |
 | **Delete Modal (Cancel)** | Click delete, cancel modal | Modal dismisses, record remains untouched | Pass |
 | **Confirm Delete (POST)** | Click delete, confirm in modal | Item removed from DB, catalogue reloads with confirmation message | Pass |

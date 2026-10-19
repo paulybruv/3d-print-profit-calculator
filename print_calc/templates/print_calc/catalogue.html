@@ -34,6 +34,19 @@
         </div>
     </div>
 
+    <!-- Filament Filter Bar -->
+    <nav class="d-flex flex-wrap align-items-center gap-2 mb-4" aria-label="Filter catalogue by filament material">
+        <span class="text-secondary small fw-bold me-1">Filter by Material:</span>
+        <a href="{% url 'catalogue' %}" class="btn btn-sm {% if not selected_filament %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+            All
+        </a>
+        {% for code, label in filament_choices %}
+            <a href="{% url 'catalogue' %}?filament={{ code }}" class="btn btn-sm {% if selected_filament == code %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+                {{ label }}
+            </a>
+        {% endfor %}
+    </nav>
+
     <!-- Items Grid -->
     {% if saved_prints %}
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">

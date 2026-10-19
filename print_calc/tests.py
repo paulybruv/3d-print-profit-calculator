@@ -153,6 +153,61 @@ class ViewAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "print_calc/catalogue.html")
 
+    def test_anonymous_calculator_post_returns_breakdown(self):
+        """Verify guest POST calculates full breakdown without DB save."""
+        post_data = {
+            "printer": self.printer.id,
+            "item_name": "Guest Test Print",
+            "filament_type": "PLA",
+            "spool_price_per_kg": "20.00",
+            "filament_grams_used": 100,
+            "print_time_hours": "2.00",
+            "electricity_rate_kwh": "0.30",
+            "markup_percentage": 50,
+        }
+        response = self.client.post(reverse("calculator"), post_data)
+        self.assertEqual(response.status_code, 200)
+        result = response.context["calculated_result"]
+        self.assertIsNotNone(result)
+        self.assertEqual(result["filament_cost"], Decimal("2.00"))
+        self.assertEqual(result["electricity_cost"], Decimal("0.06"))
+        self.assertEqual(result["failure_buffer_pct"], 5)
+        self.assertEqual(result["total_cost"], Decimal("2.16"))
+        self.assertEqual(result["retail_price"], Decimal("3.24"))
+        self.assertEqual(result["profit"], Decimal("1.08"))
+
+    def test_catalogue_filters_by_filament_type(self):
+        """Verify catalogue view filters saved prints by filament query."""
+        SavedPrint.objects.create(
+            user=self.user,
+            printer=self.printer,
+            item_name="PLA Vase",
+            filament_type="PLA",
+            spool_price_per_kg=Decimal("20.00"),
+            filament_grams_used=50,
+            print_time_hours=Decimal("1.00"),
+            electricity_rate_kwh=Decimal("0.25"),
+            markup_percentage=100,
+        )
+        SavedPrint.objects.create(
+            user=self.user,
+            printer=self.printer,
+            item_name="PETG Bracket",
+            filament_type="PETG",
+            spool_price_per_kg=Decimal("22.00"),
+            filament_grams_used=50,
+            print_time_hours=Decimal("1.00"),
+            electricity_rate_kwh=Decimal("0.25"),
+            markup_percentage=100,
+        )
+        self.client.login(username="shopper", password="SecurePassword123!")
+        response = self.client.get(reverse("catalogue") + "?filament=PETG")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["total_items"], 1)
+        self.assertEqual(
+            response.context["saved_prints"][0].item_name, "PETG Bracket"
+        )
+
 
 class CrudOperationTests(TestCase):
     """Verifies complete Create, Read, Update, Delete cycles."""
