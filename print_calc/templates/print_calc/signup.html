@@ -28,7 +28,7 @@
                             </label>
                             {{ field }}
                             {% if field.help_text %}
-                                <div class="form-text text-secondary small">{{ field.help_text }}</div>
+                                <div id="{{ field.auto_id }}_helptext" class="form-text text-secondary small">{{ field.help_text }}</div>
                             {% endif %}
                             {% for error in field.errors %}
                                 <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>

@@ -1,4 +1,5 @@
 {% extends 'print_calc/base.html' %}
+{% load static %}
 
 {% block title %}Calculator - 3D Print Profit Calculator{% endblock %}
 
@@ -12,7 +13,7 @@
                     <h1 id="calc-page-title" class="h4 mb-0 text-white">⚙️ 3D Print Cost Calculator</h1>
                 </header>
                 <div class="card-body p-4">
-                    <form method="post" novalidate>
+                    <form method="post" novalidate id="calculator-form">
                         {% csrf_token %}
 
                         {% if form.non_field_errors %}
@@ -23,20 +24,169 @@
                             </div>
                         {% endif %}
 
-                        {% for field in form %}
-                            <div class="mb-3">
-                                <label for="{{ field.id_for_label }}" class="form-label fw-bold">
-                                    {{ field.label }}
+                        <!-- Item Name -->
+                        <div class="mb-3">
+                            <label for="{{ form.item_name.id_for_label }}" class="form-label fw-bold">
+                                {{ form.item_name.label }}
+                            </label>
+                            {{ form.item_name }}
+                            {% if form.item_name.help_text %}
+                                <div id="{{ form.item_name.auto_id }}_helptext" class="form-text text-secondary small">{{ form.item_name.help_text }}</div>
+                            {% endif %}
+                            {% for error in form.item_name.errors %}
+                                <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Printer Selection & Auto-Populated Editable Hardware Specs -->
+                        <div class="mb-3 p-3 rounded border bg-light">
+                            <div class="mb-2">
+                                <label for="{{ form.printer.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.printer.label }}
                                 </label>
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <div class="form-text text-secondary small">{{ field.help_text }}</div>
-                                {% endif %}
-                                {% for error in field.errors %}
+                                {{ form.printer }}
+                                <div id="{{ form.printer.auto_id }}_helptext" class="form-text text-secondary small mt-1">
+                                    Select a printer above to auto-fill power draw and hourly wear, or enter custom values below.
+                                </div>
+                                {% for error in form.printer.errors %}
                                     <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
                                 {% endfor %}
                             </div>
+
+                            <div class="row g-3 mt-1">
+                                <div class="col-12 col-sm-6">
+                                    <label for="{{ form.machine_watts.id_for_label }}" class="form-label fw-bold small mb-1">
+                                        {{ form.machine_watts.label }}
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        {{ form.machine_watts }}
+                                        <span class="input-group-text">W</span>
+                                    </div>
+                                    <div id="{{ form.machine_watts.auto_id }}_helptext" class="form-text text-secondary small">{{ form.machine_watts.help_text }}</div>
+                                    {% for error in form.machine_watts.errors %}
+                                        <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="col-12 col-sm-6">
+                                    <label for="{{ form.hourly_depreciation.id_for_label }}" class="form-label fw-bold small mb-1">
+                                        {{ form.hourly_depreciation.label }}
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text currency-symbol">£</span>
+                                        {{ form.hourly_depreciation }}
+                                        <span class="input-group-text">/hr</span>
+                                    </div>
+                                    <div id="{{ form.hourly_depreciation.auto_id }}_helptext" class="form-text text-secondary small">{{ form.hourly_depreciation.help_text }}</div>
+                                    {% for error in form.hourly_depreciation.errors %}
+                                        <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filament, Spool Price, Grams, Duration -->
+                        {% for field in form %}
+                            {% if field.name not in 'item_name,printer,machine_watts,hourly_depreciation,electricity_rate_kwh,markup_percentage' %}
+                                <div class="mb-3">
+                                    <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                                        {{ field.label }}
+                                    </label>
+                                    {% if field.name == 'spool_price_per_kg' %}
+                                        <div class="input-group">
+                                            <span class="input-group-text currency-symbol">£</span>
+                                            {{ field }}
+                                            <span class="input-group-text">/kg</span>
+                                        </div>
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+                                    {% if field.help_text %}
+                                        <div id="{{ field.auto_id }}_helptext" class="form-text text-secondary small">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         {% endfor %}
+
+                        <!-- Electricity Cost per kWh & Regional Presets -->
+                        <div class="mb-3 p-3 rounded border bg-white">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+                                <label for="{{ form.electricity_rate_kwh.id_for_label }}" class="form-label fw-bold mb-0">
+                                    ⚡ {{ form.electricity_rate_kwh.label }}
+                                </label>
+                                <span class="badge bg-secondary">Regional Tariffs</span>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mb-2" role="group" aria-label="Regional electricity cost presets">
+                                <button type="button" class="btn btn-sm btn-primary preset-pill" data-rate-preset="0.263" data-currency="£" aria-pressed="true">
+                                    UK Ofgem Cap (~26.3p / £0.263)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-rate-preset="0.185" data-currency="$" aria-pressed="false">
+                                    US National Avg (~18.5¢ / $0.185)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-rate-preset="0.28" data-currency="€" aria-pressed="false">
+                                    EU Average (~€0.28)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-rate-preset="custom" aria-pressed="false">
+                                    Custom
+                                </button>
+                            </div>
+
+                            <div class="input-group">
+                                <span class="input-group-text fw-bold currency-symbol">£</span>
+                                {{ form.electricity_rate_kwh }}
+                                <span class="input-group-text">/kWh</span>
+                            </div>
+
+                            <div id="{{ form.electricity_rate_kwh.auto_id }}_helptext" class="form-text text-secondary small mt-2">
+                                💡 <strong>Tip:</strong> Most standard printers pull between 80W–150W. A 10-hour print on typical UK/US domestic power costs roughly 25p–40p / $0.20–$0.35.
+                            </div>
+
+                            {% for error in form.electricity_rate_kwh.errors %}
+                                <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Markup Percentage & Industry Presets -->
+                        <div class="mb-3 p-3 rounded border bg-white">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+                                <label for="{{ form.markup_percentage.id_for_label }}" class="form-label fw-bold mb-0">
+                                    {{ form.markup_percentage.label }}
+                                </label>
+                                <span class="badge bg-secondary">Industry Presets</span>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mb-2" role="group" aria-label="Markup percentage presets">
+                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-markup-preset="40" aria-pressed="false">
+                                    Wholesale / Bulk (40%)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-primary preset-pill" data-markup-preset="100" aria-pressed="true">
+                                    Retail / DTC (100%)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-markup-preset="200" aria-pressed="false">
+                                    Prototyping / Custom (200%)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary preset-pill" data-markup-preset="custom" aria-pressed="false">
+                                    Custom
+                                </button>
+                            </div>
+
+                            <div class="input-group">
+                                {{ form.markup_percentage }}
+                                <span class="input-group-text fw-bold">%</span>
+                            </div>
+
+                            <div id="{{ form.markup_percentage.auto_id }}_helptext" class="markup-helper-box small mt-2 p-2 rounded border text-dark" aria-live="polite">
+                                <strong>100% Markup</strong> = <strong>50.0% Gross Margin</strong>
+                            </div>
+
+                            {% for error in form.markup_percentage.errors %}
+                                <div class="text-danger small mt-1 fw-bold" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
 
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary btn-lg">
@@ -54,60 +204,73 @@
 
         <!-- Result / Information Column -->
         <aside class="col-12 col-lg-5" aria-label="Calculation Results">
-            {% if calculated_result %}
-                <article class="card shadow-sm border-0 border-top border-4 border-success">
-                    <header class="card-header bg-light py-3">
-                        <h2 class="h5 mb-0 fw-bold">📊 Estimate for {{ calculated_result.item_name }}</h2>
-                    </header>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush mb-3">
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
-                                <span>Material (Filament) Cost:</span>
-                                <span>£{{ calculated_result.filament_cost }}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
-                                <span>Electricity Overhead:</span>
-                                <span>£{{ calculated_result.electricity_cost }}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
-                                <span>Failure Risk Buffer:</span>
-                                <span>+{{ calculated_result.failure_buffer_pct }}%</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                                <span>Total Production Cost:</span>
-                                <strong>£{{ calculated_result.total_cost }}</strong>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                                <span>Recommended Retail Price:</span>
-                                <strong class="text-success fs-5">£{{ calculated_result.retail_price }}</strong>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                                <span>Estimated Profit per Item:</span>
-                                <strong class="text-primary fs-5">£{{ calculated_result.profit }}</strong>
-                            </li>
-                        </ul>
-
-                        {% if not user.is_authenticated %}
-                            <div class="alert alert-warning mb-0 text-center" role="status">
-                                <p class="mb-0 small">
-                                    Want to save this and build your catalogue? 
-                                    <a href="{% url 'login' %}" class="alert-link fw-bold">Log In</a> or 
-                                    <a href="{% url 'signup' %}" class="alert-link fw-bold">Sign Up</a>!
-                                </p>
+            <article id="calc-result-card" class="card shadow-sm border-0 border-top border-4 border-success {% if not calculated_result %}d-none{% endif %}">
+                <header class="card-header bg-light py-3">
+                    <h2 class="h5 mb-0 fw-bold">
+                        📊 Estimate for <span id="live-item-name">{{ calculated_result.item_name|default:"Current Print" }}</span>
+                    </h2>
+                </header>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
+                            <span>Material (Filament) Cost:</span>
+                            <span id="live-filament-cost">£{{ calculated_result.filament_cost|default:"0.00" }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
+                            <span>Electricity Overhead:</span>
+                            <span id="live-electricity-cost">£{{ calculated_result.electricity_cost|default:"0.00" }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
+                            <span>Machine Wear / Depreciation:</span>
+                            <span id="live-depreciation-cost">£{{ calculated_result.depreciation_cost|default:"0.00" }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 text-secondary small">
+                            <span>Failure Risk Buffer:</span>
+                            <span id="live-buffer-pct">+{{ calculated_result.failure_buffer_pct|default:"5" }}%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                            <span>Total Production Cost:</span>
+                            <strong id="live-total-cost">£{{ calculated_result.total_cost|default:"0.00" }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                            <div>
+                                <span class="d-block">Target Selling Price:</span>
+                                <small id="live-margin-summary" class="text-secondary">
+                                    {{ calculated_result.markup_percentage|default:"100" }}% Markup / {{ calculated_result.gross_margin_pct|default:"50.0" }}% Gross Margin
+                                </small>
                             </div>
-                        {% endif %}
-                    </div>
-                </article>
-            {% else %}
-                <div class="card shadow-sm border-0 bg-light p-4 text-center">
+                            <strong id="live-retail-price" class="text-success fs-5">£{{ calculated_result.retail_price|default:"0.00" }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                            <span>Estimated Profit per Item:</span>
+                            <strong id="live-profit" class="text-primary fs-5">£{{ calculated_result.profit|default:"0.00" }}</strong>
+                        </li>
+                    </ul>
+
+                    {% if not user.is_authenticated %}
+                        <div class="alert alert-warning mb-0 text-center" role="status">
+                            <p class="mb-0 small">
+                                Want to save this and build your catalogue? 
+                                <a href="{% url 'login' %}" class="alert-link fw-bold">Log In</a> or 
+                                <a href="{% url 'signup' %}" class="alert-link fw-bold">Sign Up</a>!
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </article>
+
+            {% if not calculated_result %}
+                <div id="calc-empty-state" class="card shadow-sm border-0 bg-light p-4 text-center">
                     <h2 class="h5 fw-bold mb-2">Ready to Calculate</h2>
                     <p class="text-secondary small mb-0">
-                        Select your printer, enter spool price, print time, and material weight. 
-                        We factor in machine wattage, electricity tariffs, and risk failure buffers automatically.
+                        Select your printer to auto-populate wattage and hourly machine wear, choose your regional electricity tariff, and preview your full production cost and profit margin live.
                     </p>
                 </div>
             {% endif %}
         </aside>
     </div>
 </div>
+
+{{ printer_watts|json_script:"printer-watts-data" }}
+<script src="{% static 'js/calculator.js' %}" defer></script>
 {% endblock %}

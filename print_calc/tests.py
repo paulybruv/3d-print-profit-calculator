@@ -18,11 +18,15 @@ class PrinterMachineModelTests(TestCase):
 
     def setUp(self):
         """Set up reusable test printer instances."""
-        self.printer = PrinterMachine.objects.create(
-            brand="Bambu Lab",
+        self.printer, _ = PrinterMachine.objects.update_or_create(
             name="P1S",
-            average_watts_pla=110,
-            average_watts_abs=160,
+            defaults={
+                "brand": "Bambu Lab",
+                "average_watts_pla": 105,
+                "average_watts_abs": 140,
+                "default_watts": 120,
+                "depreciation_per_hour": Decimal("0.10"),
+            },
         )
 
     def test_printer_string_representation(self):
@@ -99,6 +103,33 @@ class SavedPrintModelTests(TestCase):
             saved_print.recommended_retail_price, Decimal("4.80")
         )
         self.assertEqual(saved_print.profit_per_item, Decimal("2.40"))
+
+    def test_depreciation_and_custom_watts_calculation(self):
+        """
+        Verify editable machine_watts and hourly_depreciation factor into cost.
+        """
+        saved_print = SavedPrint(
+            user=self.user,
+            printer=self.printer,
+            machine_watts=120,
+            hourly_depreciation=Decimal("0.10"),
+            item_name="P1S Custom Print",
+            filament_type="PLA",
+            spool_price_per_kg=Decimal("20.00"),
+            filament_grams_used=100,
+            print_time_hours=Decimal("2.00"),
+            electricity_rate_kwh=Decimal("0.25"),
+            markup_percentage=100,
+        )
+        breakdown = saved_print.calculate_pricing()
+
+        # Filament: 2.00 | Power: 0.06 | Wear (2h * 0.10): 0.20
+        # Subtotal: 2.26 -> Buffer (1.05x): 2.373 -> Rounded: 2.37
+        self.assertEqual(breakdown["depreciation_cost"], Decimal("0.20"))
+        self.assertEqual(saved_print.total_cost, Decimal("2.37"))
+        self.assertEqual(
+            saved_print.recommended_retail_price, Decimal("4.74")
+        )
 
     def test_negative_form_values_rejected(self):
         """Ensure SavedPrintForm rejects negative numeric inputs."""

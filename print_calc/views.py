@@ -13,7 +13,21 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect, render
 from .forms import SavedPrintForm
-from .models import SavedPrint
+from .models import PrinterMachine, SavedPrint
+
+
+def get_printer_watts_map():
+    """Returns a dictionary mapping printer IDs to specs for live JS."""
+    return {
+        str(printer.id): {
+            "default_watts": printer.default_watts,
+            "pla": printer.average_watts_pla,
+            "abs": printer.average_watts_abs,
+            "depreciation": str(printer.depreciation_per_hour),
+            "note": printer.cost_basis_note,
+        }
+        for printer in PrinterMachine.objects.all()
+    }
 
 
 @receiver(user_logged_in)
@@ -77,6 +91,7 @@ def calculator_view(request):
     context = {
         "form": form,
         "calculated_result": calculated_result,
+        "printer_watts": get_printer_watts_map(),
     }
     return render(request, "print_calc/calculator.html", context)
 
@@ -133,6 +148,7 @@ def edit_print_view(request, pk):
     context = {
         "form": form,
         "saved_print": saved_print,
+        "printer_watts": get_printer_watts_map(),
     }
     return render(request, "print_calc/edit_print.html", context)
 

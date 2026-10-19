@@ -16,8 +16,10 @@ class PrinterMachineAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "brand",
+        "default_watts",
         "average_watts_pla",
         "average_watts_abs",
+        "depreciation_per_hour",
     )
     list_filter = ("brand",)
     search_fields = ("name", "brand")

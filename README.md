@@ -186,8 +186,15 @@ Ran 11 tests in 9.4s
 OK
 ```
 
-### 4.2 JavaScript & Interactive Component Testing
-The application deliberately avoids custom JavaScript files in favor of declarative **Bootstrap 5.3** `data-bs-*` attributes (`bootstrap.bundle.min.js`) to minimize bundle overhead and prevent client-side calculation tampering. Interactive UI behaviors—including the responsive mobile navigation drawer (`data-bs-toggle="collapse"`), dismissible notification alerts (`data-bs-dismiss="alert"`), and per-item delete confirmation modals (`data-bs-toggle="modal"`)—were manually verified across desktop and mobile viewports.
+### 4.2 JavaScript Test Procedures (`static/js/calculator.js`)
+Custom front-end JavaScript in `static/js/calculator.js` powers the industry markup preset pills (`40%`, `100%`, `200%`, `Custom`), dynamic Markup-to-Gross-Margin contextual helper, and instant live breakdown card updates:
+
+| JS Feature / Function | User Interaction Tested | Expected Outcome | Result |
+| :--- | :--- | :--- | :---: |
+| **Markup Preset Pills** (`syncPresetHighlight`) | Click `Wholesale (40%)`, `Retail (100%)`, or `Prototyping (200%)` | Updates `#id_markup_percentage`, highlights active pill (`aria-pressed="true"`), and recalculates live margin & price | Pass |
+| **Custom Markup Detection** (`syncPresetHighlight`) | Manually type `75` into the markup input field | Automatically switches active pill highlight to `Custom` | Pass |
+| **Contextual Margin Helper** (`recalculatePricing`) | Enter print specs and adjust markup or presets | Displays `[X]% Markup = [Y]% Gross Margin (Profit: £[Z])` using `((Retail - Cost) / Retail) * 100` | Pass |
+| **Bootstrap Modals & Collapse** (`bootstrap.bundle.min.js`) | Toggle mobile navbar and open/cancel delete modal | Drawer and confirmation modal open, trap focus, and dismiss cleanly | Pass |
 
 ### 4.3 Manual Testing Matrix
 
@@ -198,7 +205,7 @@ The application deliberately avoids custom JavaScript files in favor of declarat
 | **User Sign Up** | Submit registration form | Account created, user logged in, welcome flash message displayed | Pass |
 | **Login / Logout Flash** | Sign in and sign out via navbar | Flash alerts confirm login (`Welcome back...`) and logout (`Safely signed out`) | Pass |
 | **Catalogue View & Filter** | Log in, view catalogue, click filament filter pills (`PLA`, `PETG`, etc.) | User-specific prints filter by material and update summary metrics | Pass |
-| **Edit Calculation** | Change spool price or electricity tariff and submit | New retail price and cost computed, DB updated, success alert shown | Pass |
+| **Edit Calculation** | Change spool price or markup preset and submit | New retail price and cost computed, DB updated, success alert shown | Pass |
 | **Delete Modal (Cancel)** | Click delete, cancel modal | Modal dismisses, record remains untouched | Pass |
 | **Confirm Delete (POST)** | Click delete, confirm in modal | Item removed from DB, catalogue reloads with confirmation message | Pass |
 | **Cross-User Access Guard** | Attempt `/edit/<id>/` of another user's print | Returns 404 Not Found error page | Pass |
