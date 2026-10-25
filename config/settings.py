@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.gzip.GZipMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -140,6 +141,10 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# WhiteNoise: cache versioned static assets for 1 year
+WHITENOISE_MAX_AGE = 31536000
+WHITENOISE_MANIFEST_STRICT = False
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration

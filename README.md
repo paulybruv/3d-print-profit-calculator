@@ -257,10 +257,14 @@ Custom front-end JavaScript in `static/js/calculator.js` powers the 23 printer h
 | `Sign Up (/signup/)` | W3C Nu HTML5 | 0 | 0 | **Pass** |
 | `static/css/style.css` | W3C CSS3 | 0 | 0 | **Pass** |
 
-* **Google Lighthouse Audits** (Chromium, Oct 16, 2026):
+* **Google Lighthouse Audits** (Lighthouse 13.4.1, live production build):
 
-| Device View | Performance | Accessibility | Best Practices | SEO | Full Report |
-| :--- | :---: | :---: | :---: | :---: | :---: |
+| Device Form Factor | Performance | Accessibility | Best Practices | SEO | Agentic Browsing | Core Web Vitals |
+| :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Desktop** | **99–100** | **100** | **100** | **100** | **100% (1/1)** | FCP: 0.7s · LCP: 0.8s · SI: 0.7s · **TBT: 0 ms** · **CLS: 0** |
+| **Mobile** (Throttled 4G) | **97–100** | **100** | **100** | **100** | **100% (1/1)** | FCP: 0.7s–1.2s · LCP: 0.8s–1.4s · SI: 0.7s · **TBT: 0 ms** · **CLS: 0** |
+
+--- | :---: | :---: | :---: | :---: | :---: |
 | **Desktop** | **100** | **96** | **100** | **100** | [View Desktop PDF](docs/3dprint-lighthouse-desktop.pdf) |
 | **Mobile** | **99** | **95** | **100** | **100** | [View Mobile PDF](docs/3dprint-lighthouse-mobile.pdf) |
 
@@ -283,6 +287,12 @@ Custom front-end JavaScript in `static/js/calculator.js` powers the 23 printer h
 5. **Model String Representation Whitespace**:
    * *Issue*: `PrinterMachine.__str__` produced an unexpected leading space when machines were instantiated without an explicit brand.
    * *Fix*: Added conditional string formatting checking for brand existence before prepending.
+6. **W3C HTML Accordion `aria-labelledby` Validation Conflict**:
+   * *Issue*: A redundant `aria-labelledby` on the generic `#collapseAdvancedOptions` `<div>` was rejected by the W3C validator.
+   * *Fix*: Removed it in `calculator.html` (and `edit_print.html`), achieving 100% W3C HTML5 compliance with 0 errors across all routes.
+7. **Client-Side Slicer Archive Thumbnail Parsing (`.3mf`)**:
+   * *Issue*: Uploaded `.3mf` files showed no build plate preview.
+   * *Fix*: Implemented flexible JSZip path traversal (matching `Metadata/plate_1.png` and `top_1.png`) and Base64 conversion to render live 3D build plate previews in the UI banner and pricing card.
 
 ---
 
@@ -373,9 +383,11 @@ The project is pre-configured for Heroku deployment with `Procfile`, `gunicorn`,
 
 ## 12. Future Roadmap
 
-* **Multi-Spool / AMS Support**: Support multi-color prints with purge/poop waste weight multipliers.
-* **CSV / PDF Catalogue Export**: Allow makers to export their saved print catalogue for bookkeeping and tax reporting.
-* **Batch Print Estimator**: Calculate per-unit savings when filling an entire build plate with multiple copies.
+- [ ] **Filament Spool Inventory & Stock Tracking**: Automatically track remaining spool weights as projects are saved.
+- [ ] **PDF & CSV Client Quote Exporter**: Generate clean, branded printable quote summaries for customer commissions.
+- [ ] **OctoPrint & Klipper (Moonraker) Webhook Integration**: Fetch actual print completion runtimes and real bed/hotend energy telemetry over the local network.
+- [ ] **Dedicated Resin (SLA/DLP) Mode**: Cost modeling for photopolymer resin volume, wash/cure station electricity, and IPA bath degradation.
+- [ ] **Marketplace Fee Calculator Toggle**: Quick-toggle deductions for Etsy/Shopify transaction fees to calculate true take-home margins.
 
 ---
 
