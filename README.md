@@ -1,5 +1,7 @@
 # 🖨️ 3D Print Cost & Retail Price Calculator
 
+🌐 **Live Application:** [https://print-profit-calculator-paul-edbf381bcfdc.herokuapp.com/](https://print-profit-calculator-paul-edbf381bcfdc.herokuapp.com/)
+
 A full-stack Django web application designed for 3D printing hobbyists, makers, and small-batch production businesses. It calculates precise production costs—factoring in filament weight, spool price, machine wattage, electricity tariffs, and material-specific failure buffers—to suggest sustainable retail pricing and project accurate profit margins.
 
 ---
