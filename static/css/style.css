@@ -43,6 +43,9 @@
 .slicer-thumb-box {
     width: 68px;
     height: 68px;
+    min-width: 68px;
+    min-height: 68px;
+    aspect-ratio: 1 / 1;
     background-color: #1e293b;
     border-radius: 0.5rem;
     border: 1px solid #475569;
@@ -63,6 +66,7 @@
 .slicer-result-thumb-img {
     width: 112px;
     height: 112px;
+    aspect-ratio: 1 / 1;
     object-fit: contain;
     background-color: #1e293b;
     border-radius: 0.65rem;
