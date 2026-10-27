@@ -221,3 +221,6 @@ __marimo__/
 
 # Custom environment files
 env.py
+
+# Django collectstatic output (generated)
+staticfiles/

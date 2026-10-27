@@ -262,7 +262,7 @@ Custom front-end JavaScript in `static/js/calculator.js` powers the 23 printer h
 | Device Form Factor | Performance | Accessibility | Best Practices | SEO | Agentic Browsing | Core Web Vitals |
 | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
 | **Desktop** | **99–100** | **100** | **100** | **100** | **100% (1/1)** | FCP: 0.7s · LCP: 0.8s · SI: 0.7s · **TBT: 0 ms** · **CLS: 0** |
-| **Mobile** (Throttled 4G) | **97–100** | **100** | **100** | **100** | **100% (1/1)** | FCP: 0.7s–1.2s · LCP: 0.8s–1.4s · SI: 0.7s · **TBT: 0 ms** · **CLS: 0** |
+| **Mobile** (Throttled 4G) | **98** | **100** | **100** | **100** | **100% (1/1)** | FCP: 1.8s · LCP: 2.2s · SI: 1.8s · **TBT: 0 ms** · **CLS: 0** |
 
 --- | :---: | :---: | :---: | :---: | :---: |
 | **Desktop** | **100** | **96** | **100** | **100** | [View Desktop PDF](docs/3dprint-lighthouse-desktop.pdf) |
