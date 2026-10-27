@@ -9,16 +9,16 @@ A full-stack Django web application designed for 3D printing hobbyists, makers, 
 ## 📋 Table of Contents
 1. [Project Overview & UX](#1-project-overview--ux)
 2. [Agile Methodology & User Stories](#2-agile-methodology--user-stories)
-3. [AI Augmentation & Implementation](#3-ai-augmentation--implementation)
+3. [AI Augmentation & Implementation (LO8)](#3-ai-augmentation--implementation-lo8)
 4. [Wireframes](#4-wireframes)
 5. [Data Model Architecture](#5-data-model-architecture)
 6. [Calculation Logic & Formulas](#6-calculation-logic--formulas)
 7. [Features & Defensive Design](#7-features--defensive-design)
-8. [Testing & Quality Assurance](#8-testing--quality-assurance)
+8. [Testing & Quality Assurance (LO4)](#8-testing--quality-assurance-lo4)
 9. [Bugs & Resolved Issues](#9-bugs--resolved-issues)
 10. [Technologies Used](#10-technologies-used)
-11. [Local Development & Setup](#11-local-development--setup)
-12. [Future Roadmap & Planned Deployment](#12-future-roadmap--planned-deployment)
+11. [Local Development & Cloud Deployment (LO6)](#11-local-development--cloud-deployment-lo6)
+12. [Future Roadmap](#12-future-roadmap)
 13. [Credits & Acknowledgements](#13-credits--acknowledgements)
 
 ---
@@ -83,7 +83,7 @@ Project planning and task tracking were managed using **GitHub Projects** follow
 * **Developer Adjustments to AI Test Output**: Adjusted initial `float` assertions to strict `Decimal("...")` comparisons, added explicit `refresh_from_db()` checks on update tests, and ensured test printer names (`MK4S`) did not collide with seeded migration records.
 
 ### 8.5 Reflection on AI's Role and Impact on Workflow
-* Pairing **Google Antigravity** (for multi-file architectural reviews, automated terminal test/linter verification, and live W3C validation checks) with **GitHub Copilot** (for inline code and test completions) dramatically improved development velocity and code quality. Every AI suggestion was critically reviewed, tested, and challenged—such as catching unexecuted validation steps early and verifying all 9 unit tests, `flake8`, and W3C checks directly before committing.
+* Pairing **Google Antigravity** (for multi-file architectural reviews, automated terminal test/linter verification, and live W3C validation checks) with **GitHub Copilot** (for inline code and test completions) dramatically improved development velocity and code quality. Every AI suggestion was critically reviewed, tested, and challenged—such as catching unexecuted validation steps early and verifying all 14 unit tests, `flake8`, and W3C checks directly before committing.
 
 ---
 
@@ -171,6 +171,8 @@ All cost calculations are performed within `SavedPrint.calculate_pricing()` (inv
 
 ### Implemented Features
 * **"Drop & Done" `.gcode` and `.3mf` Slicer Auto-Parser**: Modern drag-and-drop dropzone that inspects OrcaSlicer, Bambu Studio, PrusaSlicer, and Cura `.gcode` / `.3mf` files client-side (via `JSZip`) to auto-populate Printer Model, Print Time, Model Weight, Purge/Waste Weight, and Multi-Color AMS spools.
+* **Embedded 3D Build Plate Thumbnail Previews**: Extracts embedded PNG previews directly from `.3mf` archives (`Metadata/plate_1.png`) and `.gcode` `; thumbnail begin` blocks to display the sliced 3D model in both the upload banner and live pricing card.
+* **Interactive "💡 How it Works" Slide-Out Drawer**: Accessible slide-out guide explaining every cost formula, failure risk multiplier, and markup vs. gross margin calculation without leaving the page.
 * **Streamlined Core View + Collapsible Advanced Options**: Keeps the default calculator view uncluttered while providing optional toggles for Batch Plate Quantity, Hands-On Labor (time-based or flat currency), Multi-Color AMS Spool Manager (up to 16 spools), Hardware & Fasteners BOM, and Minimum Order Floor Charge.
 * **23 Individual Printer Hardware Presets**: Brand-grouped `<optgroup>` dropdown (`Bambu Lab`, `Prusa`, `Creality`, `Elegoo`, `Anycubic`, `Resin`, `Custom`) that immediately populates editable **Machine Wattage (W)** and **Hourly Wear / Depreciation (£/hr)** fields.
 * **Regional Electricity Tariff Pills & Currency Sync**: One-click preset buttons (`UK Ofgem Cap £0.263`, `US National Avg $0.185`, `EU Average €0.28`, `Custom`) that sync currency symbols (`£`, `$`, `€`) across the UI.
@@ -264,10 +266,6 @@ Custom front-end JavaScript in `static/js/calculator.js` powers the 23 printer h
 | **Desktop** | **99–100** | **100** | **100** | **100** | **100% (1/1)** | FCP: 0.7s · LCP: 0.8s · SI: 0.7s · **TBT: 0 ms** · **CLS: 0** |
 | **Mobile** (Throttled 4G) | **98** | **100** | **100** | **100** | **100% (1/1)** | FCP: 1.8s · LCP: 2.2s · SI: 1.8s · **TBT: 0 ms** · **CLS: 0** |
 
---- | :---: | :---: | :---: | :---: | :---: |
-| **Desktop** | **100** | **96** | **100** | **100** | [View Desktop PDF](docs/3dprint-lighthouse-desktop.pdf) |
-| **Mobile** | **99** | **95** | **100** | **100** | [View Mobile PDF](docs/3dprint-lighthouse-mobile.pdf) |
-
 ---
 
 ## 9. Bugs & Resolved Issues
@@ -293,6 +291,9 @@ Custom front-end JavaScript in `static/js/calculator.js` powers the 23 printer h
 7. **Client-Side Slicer Archive Thumbnail Parsing (`.3mf`)**:
    * *Issue*: Uploaded `.3mf` files showed no build plate preview.
    * *Fix*: Implemented flexible JSZip path traversal (matching `Metadata/plate_1.png` and `top_1.png`) and Base64 conversion to render live 3D build plate previews in the UI banner and pricing card.
+8. **Cumulative Layout Shift (CLS) & Static Asset Compression (Lighthouse 13.4.1)**:
+   * *Issue*: Asynchronous CSS loading and un-dimensioned dynamic thumbnail `<img>` placeholders caused layout shift on mobile, and uncompressed responses triggered Lighthouse payload diagnostics.
+   * *Fix*: Added explicit `width`, `height`, and `aspect-ratio: 1 / 1` sizing to all preview containers, restored render-blocking Bootstrap CSS with `preconnect`/`dns-prefetch` hints (bringing **CLS to `0`**), enabled `GZipMiddleware`, and set `WHITENOISE_MAX_AGE = 31536000` for 1-year static caching.
 
 ---
 
