@@ -2,6 +2,8 @@
 
 🌐 **Live Application:** [https://print-profit-calculator-paul-edbf381bcfdc.herokuapp.com/](https://print-profit-calculator-paul-edbf381bcfdc.herokuapp.com/)
 
+🧪 **Sample 3D Slicer File for Assessors:** [`docs/samples/jack-o-lantern-duck_3-Color.gcode.3mf`](docs/samples/jack-o-lantern-duck_3-Color.gcode.3mf) *(Click **"Download raw file"** on GitHub, then drag and drop it onto the live calculator to test instant 3-color AMS spool detection, purge/flush waste calculation, Bambu Lab P1S printer matching, and 3D build plate thumbnail preview!)*
+
 A full-stack Django web application designed for 3D printing hobbyists, makers, and small-batch production businesses. It calculates precise production costs—factoring in filament weight, spool price, machine wattage, electricity tariffs, and material-specific failure buffers—to suggest sustainable retail pricing and project accurate profit margins.
 
 ---
