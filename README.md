@@ -37,8 +37,8 @@ A full-stack Django web application designed for 3D printing hobbyists, makers, 
 * Update existing calculations when material costs or energy tariffs fluctuate.
 
 ### Design & Typography
-* **Color Palette**: Dark charcoal header/navigation (`#212529`), clean off-white background (`#f8f9fa`), primary maker blue (`#0d6efd`), and retail success green (`#198754`).
-* **Typography**: Clean system sans-serif hierarchy for cross-device readability.
+* **Color Palette (WCAG 2.1 AAA High-Contrast `>= 9:1`)**: Deep slate charcoal header/navigation and primary body text (`#111827`), clean off-white surface background (`#f8f9fa`), pure white cards (`#ffffff`), high-contrast maker blue (`#084298`), high-contrast retail success green (`#0f5132`), and high-contrast danger crimson (`#842029`).
+* **Typography**: Clean system sans-serif hierarchy (`system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif`) for cross-device readability from `320px` mobile viewports up to widescreen desktops.
 
 ---
 
@@ -53,12 +53,31 @@ Project planning and task tracking were managed using **GitHub Projects** follow
 | ID | User Story | Epic | MoSCoW Priority | Project Goal Link | Status |
 | :--- | :--- | :--- | :---: | :--- | :---: |
 | **US01** | As a **Guest Visitor**, I can input item name, printer hardware, filament type, spool price, grams, time, electricity tariff, and profit markup so that I can estimate production costs immediately. | Core Calculator | **Must Have** | Instant Cost Estimation | ✅ Done |
-| **US02** | As a **Maker**, I can see a clear breakdown of filament cost, electricity overhead, total cost with failure buffer, recommended retail price, and profit per item. | Core Calculator | **Must Have** | Profit & Retail Transparency | ✅ Done |
+| **US02** | As a **Maker**, I can see a clear breakdown of filament cost, electricity overhead, machine wear, total cost with failure buffer, recommended retail price, and profit per item. | Core Calculator | **Must Have** | Profit & Retail Transparency | ✅ Done |
 | **US03** | As a **User**, I can register, log in, and log out with clear flash notifications so that my personal catalogue remains private and secure. | Authentication & Roles | **Must Have** | Role-Based Access Control | ✅ Done |
 | **US04** | As a **Logged-In User**, I can Create, Read, Update, and Delete saved print calculations so that I can maintain an accurate product catalogue over time. | Catalogue CRUD | **Must Have** | Persistent Catalogue Management | ✅ Done |
 | **US05** | As a **Logged-In User**, I am prompted with an accessible confirmation modal before deleting a saved print so that I avoid accidental data loss. | Defensive UX | **Should Have** | Defensive Design & Safety | ✅ Done |
-| **US06** | As a **Logged-In User**, I can view summary statistical cards (Total Saved Items, Average Profit per Item) at the top of my catalogue. | Analytics Dashboard | **Should Have** | Business Margin Insights | ✅ Done |
-| **US07** | As a **Maker**, I can select different filament types (`PLA`, `PETG`, `ABS`, `TPU`) that automatically apply appropriate machine wattages and failure risk buffers (5% vs 15%). | Domain Logic | **Could Have** | Real-World 3D Printing Accuracy | ✅ Done |
+| **US06** | As a **Logged-In User**, I can view summary statistical cards (Total Saved Items, Average Profit per Item), filter by filament material, and search my catalogue. | Analytics Dashboard | **Should Have** | Business Margin Insights | ✅ Done |
+| **US07** | As a **Maker**, I can select from 23 printer presets and filament types (`PLA`, `PETG`, `ABS`, `TPU`) that automatically apply machine wattages, hourly wear rates, and failure risk buffers (5% vs 15%). | Domain Logic | **Should Have** | Real-World 3D Printing Accuracy | ✅ Done |
+| **US08** | As a **Maker**, I can drag and drop a sliced `.gcode` or `.3mf` file to auto-fill printer hardware, print time, model weight, purge/flush waste, multi-color spools, and a 3D build plate thumbnail preview. | Slicer Automation | **Could Have** | Zero-Friction Pricing Workflow | ✅ Done |
+| **US09** | As a **Maker**, I can account for multi-color AMS spools (up to 16 colors), purge/flush waste, batch plate quantities, setup/cleanup labor, hardware add-ons, and a minimum order floor charge. | Advanced Costing | **Could Have** | Print Farm & Multi-Color Accuracy | ✅ Done |
+| **US10** | As a **Print Farm Owner**, I want automatic filament spool inventory deduction as prints are saved so that I know when to reorder stock. | Inventory Management | **Won't Have** *(v2)* | Future Roadmap Scope Control | 📌 Backlog |
+| **US11** | As a **Commission Seller**, I want to connect directly to OctoPrint / Klipper / Bambu Cloud APIs for live telemetry so that actual runtimes are logged automatically. | Hardware Telemetry | **Won't Have** *(v2)* | Future Roadmap Scope Control | 📌 Backlog |
+
+### User Story Acceptance Criteria & Tasks Summary
+
+* **US01 & US02 (Core Cost & Profit Calculator)**
+  * *Acceptance Criteria*: Guest and logged-in users can calculate costs without logging in; inputs reject negative numbers; live breakdown displays Material Cost, Machine Cost, Total Cost, Suggested Selling Price, Gross Margin %, and Net Profit.
+  * *Tasks*: Build `PrinterMachine` and `SavedPrint` models; implement `Decimal` `calculate_pricing()` method; build responsive form and live calculation script in `calculator.js`.
+* **US03 (Authentication & Role-Based Security)**
+  * *Acceptance Criteria*: Users can sign up, log in, and log out; auth state is clearly visible in the navbar; login/logout actions trigger Bootstrap flash alerts; `/catalogue/`, `/edit/<pk>/`, and `/delete/<pk>/` enforce `@login_required`.
+  * *Tasks*: Configure Django auth views and custom templates (`login.html`, `signup.html`); connect `user_logged_in` and `user_logged_out` signals in `signals.py`.
+* **US04 & US05 (Catalogue CRUD & Defensive Deletion)**
+  * *Acceptance Criteria*: Logged-in users can save prints from the calculator, view only their own saved prints, edit any field with live recalculation, load a saved print back into the calculator, and delete items only via a POST confirmation modal; cross-user access returns HTTP 404.
+  * *Tasks*: Implement `catalogue_view`, `edit_print_view`, and `delete_print_view` using `get_object_or_404(SavedPrint, pk=pk, user=request.user)`; build accessible Bootstrap delete modal in `catalogue.html`.
+* **US06, US07, US08 & US09 (Hardware Presets, Slicer `.gcode`/`.3mf` Parser & Advanced Costing)**
+  * *Acceptance Criteria*: Selecting any of the 23 seeded printers populates wattage and hourly depreciation; dropping a `.gcode` or `.3mf` file parses print time, filament weight, purge waste, AMS spool colors, and 3D thumbnail preview; optional Advanced Options accordion supports batch quantity division, labor rates, and hardware BOM.
+  * *Tasks*: Create migrations `0002`–`0004` seeding 23 printers; implement client-side `.gcode` and `JSZip` `.3mf` parser + Base64 thumbnail extractor in `calculator.js`; add unit tests in `print_calc/tests.py`.
 
 ---
 
@@ -294,6 +313,9 @@ Custom front-end JavaScript in `static/js/calculator.js` powers the 23 printer h
 8. **Cumulative Layout Shift (CLS) & Static Asset Compression (Lighthouse 13.4.1)**:
    * *Issue*: Asynchronous CSS loading and un-dimensioned dynamic thumbnail `<img>` placeholders caused layout shift on mobile, and uncompressed responses triggered Lighthouse payload diagnostics.
    * *Fix*: Added explicit `width`, `height`, and `aspect-ratio: 1 / 1` sizing to all preview containers, restored render-blocking Bootstrap CSS with `preconnect`/`dns-prefetch` hints (bringing **CLS to `0`**), enabled `GZipMiddleware`, and set `WHITENOISE_MAX_AGE = 31536000` for 1-year static caching.
+9. **320px Mobile Viewport Material Waste Badge Overflow**:
+   * *Issue*: At a `320px` viewport width (and in narrow 3-column layouts), the `#material-waste-badge` (`Material Waste: 0.0% (0.0g purged)`) overflowed its container horizontally due to Bootstrap's default `.badge { white-space: nowrap }` rule combined with nested `.container` padding.
+   * *Fix*: Applied `white-space: normal !important; max-width: 100%; overflow-wrap: break-word;` to `#material-waste-badge`, removed duplicate nested `.container` wrappers inside `<main class="container">`, and added responsive `p-3 p-sm-4` card-body padding.
 
 ---
 
