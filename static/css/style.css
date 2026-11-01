@@ -196,6 +196,16 @@ footer.bg-dark p {
 }
 
 /* High-contrast badges & buttons (all >= 9:1 contrast ratio) */
+#material-waste-badge {
+    white-space: normal !important;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    text-align: left;
+    line-height: 1.35;
+    display: inline-block;
+}
+
 .badge.bg-secondary,
 .badge-secondary {
     background-color: #1f2937 !important;

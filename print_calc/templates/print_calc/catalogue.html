@@ -3,7 +3,7 @@
 {% block title %}My Saved Prints - 3D Print Profit Calculator{% endblock %}
 
 {% block content %}
-<section class="container my-4" aria-labelledby="catalogue-heading">
+<section class="my-2" aria-labelledby="catalogue-heading">
     <header class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-4 border-bottom">
         <div>
             <h1 id="catalogue-heading" class="h3 fw-bold mb-1">📁 My Print Catalogue</h1>
@@ -87,7 +87,7 @@
 
                             <!-- Key Badges: Printer model, Print time, Multi-color badge (with color dots), Filament/Batch -->
                             <div class="d-flex flex-wrap align-items-center gap-1 mt-2">
-                                <span class="badge bg-secondary" title="Selected Printer Profile">
+                                <span class="badge bg-secondary text-wrap text-start lh-sm mw-100" title="Selected Printer Profile">
                                     🖨️ {{ summary.printer_display }}
                                 </span>
                                 <span class="badge bg-secondary" title="Total Print Time">
