@@ -278,12 +278,24 @@ Custom front-end JavaScript in `static/js/calculator.js` powers the 23 printer h
 | `Sign Up (/signup/)` | W3C Nu HTML5 | 0 | 0 | **Pass** |
 | `static/css/style.css` | W3C CSS3 | 0 | 0 | **Pass** |
 
-* **Google Lighthouse Audits** (Lighthouse 13.4.1, live production build):
+#### W3C HTML5 Validation Screenshot (`0 Errors / 0 Warnings`)
+![W3C Nu HTML5 Validation Result](docs/testing/w3c-html-validation.png)
+
+#### W3C CSS3 Validation Screenshot (`Congratulations! No Error Found`)
+![W3C CSS3 Validation Result](docs/testing/w3c-css-validation.png)
+
+* **Google Lighthouse Audits** (Lighthouse 13.4.1, live production build on Heroku):
 
 | Device Form Factor | Performance | Accessibility | Best Practices | SEO | Agentic Browsing | Core Web Vitals |
 | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Desktop** | **99–100** | **100** | **100** | **100** | **100% (1/1)** | FCP: 0.7s · LCP: 0.8s · SI: 0.7s · **TBT: 0 ms** · **CLS: 0** |
-| **Mobile** (Throttled 4G) | **98** | **100** | **100** | **100** | **100% (1/1)** | FCP: 1.8s · LCP: 2.2s · SI: 1.8s · **TBT: 0 ms** · **CLS: 0** |
+| **Desktop** | **100** | **100** | **100** | **100** | **100% (2/2)** | FCP: 0.7s · LCP: 0.8s · SI: 0.7s · **TBT: 0 ms** · **CLS: 0** |
+| **Mobile** (Throttled 4G) | **98** | **100** | **100** | **100** | **100% (2/2)** | FCP: 1.8s · LCP: 2.2s · SI: 1.8s · **TBT: 0 ms** · **CLS: 0** |
+
+#### Lighthouse Desktop Audit (`100` Performance / `100` Accessibility / `100` Best Practices / `100` SEO)
+![Lighthouse Desktop Audit Screenshot](docs/testing/lighthouse-desktop.png)
+
+#### Lighthouse Mobile Audit (`98` Performance / `100` Accessibility / `100` Best Practices / `100` SEO)
+![Lighthouse Mobile Audit Screenshot](docs/testing/lighthouse-mobile.png)
 
 ---
 
